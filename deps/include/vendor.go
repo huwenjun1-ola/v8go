@@ -3,5 +3,5 @@
 package include
 
 import (
-	_ "gitee.com/hasika/v8go"
+	_ "code.flock-block.com/Zheng.Kaikai/v8go"
 )

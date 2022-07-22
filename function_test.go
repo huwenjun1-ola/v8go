@@ -7,7 +7,7 @@ package v8go_test
 import (
 	"testing"
 
-	v8 "gitee.com/hasika/v8go"
+	v8 "code.flock-block.com/Zheng.Kaikai/v8go"
 )
 
 func TestFunctionCall(t *testing.T) {
