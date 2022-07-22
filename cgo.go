@@ -2,7 +2,7 @@
 // Use of this source code is governed by a BSD-style license that can be
 // found in the LICENSE file.
 
-package v8go_win
+package v8go
 
 // #cgo CFLAGS:-I${SRCDIR}/include/ -I${SRCDIR}/ -w
 // #cgo LDFLAGS: -L${SRCDIR}/lib/ -lv8_export

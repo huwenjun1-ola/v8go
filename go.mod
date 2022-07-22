@@ -1,4 +1,4 @@
-module gitee..com/hasika/v8go
+module gitee.com/hasika/v8go
 
 go 1.16
 

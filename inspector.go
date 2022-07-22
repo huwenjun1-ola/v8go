@@ -1,4 +1,4 @@
-package v8go_win
+package v8go
 
 //#include "v8go.h"
 import "C"

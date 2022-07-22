@@ -5,7 +5,7 @@
 //go:build leakcheck
 // +build leakcheck
 
-package v8go_win_test
+package v8go_test
 
 import (
 	"os"

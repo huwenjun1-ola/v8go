@@ -5,7 +5,7 @@
 /*
 Package v8go provides an API to execute JavaScript.
 */
-package v8go_win
+package v8go
 
 // #include "v8go.h"
 // #include <stdlib.h>

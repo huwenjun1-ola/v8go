@@ -8,7 +8,7 @@
 //go:build !leakcheck || !darwin
 // +build !leakcheck !darwin
 
-package v8go_win_test
+package v8go_test
 
 import (
 	"fmt"

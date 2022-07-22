@@ -5,7 +5,7 @@
 //go:build leakcheck
 // +build leakcheck
 
-package v8go_win
+package v8go
 
 // #cgo CPPFLAGS: -fsanitize=address
 // #cgo LDFLAGS: -fsanitize=address
