@@ -3,6 +3,5 @@
 package include
 
 import (
-	_ "code.flock-block.com/Zheng.Kaikai/v8go/deps/include/cppgc"
-	_ "code.flock-block.com/Zheng.Kaikai/v8go/deps/include/libplatform"
+	_ "gitee.com/hasika/v8go"
 )

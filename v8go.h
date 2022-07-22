@@ -1,2 +1,12 @@
 #include "v8_export.h"
-extern void InitV8Go0();
+
+#ifdef __cpluscplus
+extern "C"
+{
+#endif
+
+void InitV8GoCallBack();
+
+#ifdef __cpluscplus
+}
+#endif

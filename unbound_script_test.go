@@ -7,7 +7,7 @@ package v8go_test
 import (
 	"testing"
 
-	v8 "gitee..com/hasika/v8go"
+	v8 "gitee.com/hasika/v8go"
 )
 
 func TestUnboundScriptRun_OnlyInTheSameIsolate(t *testing.T) {

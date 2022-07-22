@@ -47,13 +47,14 @@ type HeapStatistics struct {
 // NewIsolate creates a new V8 isolate. Only one thread may access
 // a given isolate at a time, but different threads may access
 // different isolates simultaneously.
-// When an isolate is no longer used its resources should be freed
+// When a isolate is no longer used its resources should be freed
 // by calling iso.Dispose().
 // An *Isolate can be used as a v8go.ContextOption to create a new
 // Context, rather than creating a new default Isolate.
 func NewIsolate() *Isolate {
 	v8once.Do(func() {
 		C.Init()
+		C.InitV8GoCallBack()
 	})
 	iso := &Isolate{
 		ptr: C.NewIsolate(),

@@ -1,7 +1,6 @@
 #ifndef INSPECTOR_V8INSPECTORCLIENTIMPL_H
 #define INSPECTOR_V8INSPECTORCLIENTIMPL_H
-
-#ifndef _WINDOWS
+#ifdef COMPILE_EXPORT
 #include <locale>
 #include <codecvt>
 #include "v8-inspector.h"
