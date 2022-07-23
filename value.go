@@ -241,7 +241,7 @@ func (v *Value) DetailString() string {
 		panic(err) // TODO: Return a fallback value
 	}
 	s := rtn.string
-	defer C.free(unsafe.Pointer(s))
+	defer C.freeAny(unsafe.Pointer(s))
 	return C.GoString(s)
 }
 
@@ -279,9 +279,7 @@ func (v *Value) Object() *Object {
 // print their definition.
 func (v *Value) String() string {
 	s := C.ValueToString(v.ptr)
-	defer func() {
-		C.freeAny(unsafe.Pointer(s))
-	}()
+	defer C.freeAny(unsafe.Pointer(s))
 	return C.GoString(s)
 }
 
