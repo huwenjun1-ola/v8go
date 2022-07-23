@@ -425,14 +425,16 @@ func TestValueObject(t *testing.T) {
 	ctx := v8.NewContext()
 	defer ctx.Isolate().Dispose()
 	defer ctx.Close()
+	for index := 1; index < 1000; index++ {
+		val, _ := ctx.RunScript("1", "")
+		if _, err := val.AsObject(); err == nil {
+			t.Error("Expected error but got <nil>")
+		}
+		if obj := val.Object(); obj.String() != "1" {
+			t.Errorf("unexpected object value: %v", obj)
+		}
+	}
 
-	val, _ := ctx.RunScript("1", "")
-	if _, err := val.AsObject(); err == nil {
-		t.Error("Expected error but got <nil>")
-	}
-	if obj := val.Object(); obj.String() != "1" {
-		t.Errorf("unexpected object value: %v", obj)
-	}
 }
 
 func TestValuePromise(t *testing.T) {

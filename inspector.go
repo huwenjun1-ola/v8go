@@ -1,5 +1,6 @@
 package v8go
 
+//#include <stdlib.h>
 //#include "v8go.h"
 import "C"
 import (
@@ -12,6 +13,7 @@ import (
 	"sync"
 	"sync/atomic"
 	"time"
+	"unsafe"
 )
 
 var globalInspectorIdGenerator int32 = 0
@@ -120,6 +122,8 @@ func (i *InspectorServer) StartWebSocketServer(port uint32) {
 }
 
 func (i *InspectorServer) Destroy() {
+	C.free(unsafe.Pointer(i.InspectorClientPtr))
+	i.InspectorClientPtr = nil
 	globalInspectorMap.Delete(i.InspectorId)
 	i.Server.Shutdown(context.TODO())
 }

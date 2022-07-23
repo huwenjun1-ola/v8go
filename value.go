@@ -279,7 +279,9 @@ func (v *Value) Object() *Object {
 // print their definition.
 func (v *Value) String() string {
 	s := C.ValueToString(v.ptr)
-	defer C.free(unsafe.Pointer(s))
+	defer func() {
+		C.freeAny(unsafe.Pointer(s))
+	}()
 	return C.GoString(s)
 }
 

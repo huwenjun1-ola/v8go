@@ -444,6 +444,7 @@ extern V8GO_EXPORT void BindTickFuncToClient(RawInspectorClientPtr clientPtr);
 
 extern V8GO_EXPORT void OnReceiveMessage(RawInspectorClientPtr clientPtr, char *Message);
 
+extern V8GO_EXPORT void freeAny(void* p);
 #ifdef __cplusplus
 }  // extern V8GO_EXPORT "C"
 #endif

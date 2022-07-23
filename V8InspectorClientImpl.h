@@ -18,6 +18,7 @@ public:
 
     virtual ~V8InspectorChannelImpl() override {
         OnSendMessage = nullptr;
+        V8InspectorSession.reset();
     }
 
     void DispatchProtocolMessage(const std::string &Message) {

@@ -1,4 +1,5 @@
 #ifdef COMPILE_EXPORT
+
 #include "v8_export.h"
 #include <cstdlib>
 #include <cstring>
@@ -526,7 +527,7 @@ static void FunctionTemplateCallback(const FunctionCallbackInfo<Value> &info) {
     } else {
         info.GetReturnValue().SetUndefined();
     }
-    free(thisAndArgs);
+    delete[]thisAndArgs;
 }
 
 TemplatePtr NewFunctionTemplate(IsolatePtr iso, int callback_ref) {
@@ -1593,7 +1594,7 @@ RtnValue FunctionCall(ValuePtr ptr, ValuePtr recv, int argc, ValuePtr args[]) {
     rtnval->ctx = ctx;
     rtnval->ptr = Persistent<Value, CopyablePersistentTraits<Value>>(iso, result);
     rtn.value = tracked_value(ctx, rtnval);
-    free(argv);
+    delete[]argv;
     return rtn;
 }
 
@@ -1613,7 +1614,7 @@ RtnValue FunctionNewInstance(ValuePtr ptr, int argc, ValuePtr args[]) {
     rtnval->ctx = ctx;
     rtnval->ptr = Persistent<Value, CopyablePersistentTraits<Value>>(iso, result);
     rtn.value = tracked_value(ctx, rtnval);
-    free(argv);
+    delete[]argv;
     return rtn;
 }
 
@@ -1656,5 +1657,9 @@ void BindTickFuncToClient(RawInspectorClientPtr clientPtr) {
 void OnReceiveMessage(RawInspectorClientPtr clientPtr, char *Message) {
     onReceiveMessage(clientPtr, Message);
 }
+void freeAny(void* p){
+    free(p);
+}
+
 }
 #endif
