@@ -1,4 +1,4 @@
-module code.flock-block.com/Zheng.Kaikai/v8go
+module gitee.com/hasika/v8go
 
 go 1.15
 

@@ -11,7 +11,7 @@ import (
 	"os"
 	"testing"
 
-	"code.flock-block.com/Zheng.Kaikai/v8go"
+	"gitee.com/hasika/v8go"
 )
 
 func TestMain(m *testing.M) {

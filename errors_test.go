@@ -8,7 +8,7 @@ import (
 	"fmt"
 	"testing"
 
-	v8 "code.flock-block.com/Zheng.Kaikai/v8go"
+	v8 "gitee.com/hasika/v8go"
 )
 
 func TestJSErrorFormat(t *testing.T) {
