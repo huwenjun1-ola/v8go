@@ -81,7 +81,7 @@ func NewValue(iso *Isolate, val interface{}) (*Value, error) {
 	switch v := val.(type) {
 	case string:
 		cstr := C.CString(v)
-		defer C.free(unsafe.Pointer(cstr))
+		defer C.freeAny(unsafe.Pointer(cstr))
 		rtn := C.NewValueString(iso.ptr, cstr)
 		return valueResult(nil, rtn)
 	case int8:
@@ -196,7 +196,7 @@ func (v *Value) Format(s fmt.State, verb rune) {
 // ArrayIndex attempts to converts a string to an array index. Returns ok false if conversion fails.
 func (v *Value) ArrayIndex() (idx uint32, ok bool) {
 	arrayIdx := C.ValueToArrayIndex(v.ptr)
-	defer C.free(unsafe.Pointer(arrayIdx))
+	defer C.freeAny(unsafe.Pointer(arrayIdx))
 	if arrayIdx == nil {
 		return 0, false
 	}
@@ -209,7 +209,7 @@ func (v *Value) BigInt() *big.Int {
 		return nil
 	}
 	bint := C.ValueToBigInt(v.ptr)
-	defer C.free(unsafe.Pointer(bint.word_array))
+	defer C.freeAny(unsafe.Pointer(bint.word_array))
 	if bint.word_array == nil {
 		return nil
 	}

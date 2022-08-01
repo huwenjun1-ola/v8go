@@ -92,8 +92,8 @@ type CompileOptions struct {
 func (i *Isolate) CompileUnboundScript(source, origin string, opts CompileOptions) (*UnboundScript, error) {
 	cSource := C.CString(source)
 	cOrigin := C.CString(origin)
-	defer C.free(unsafe.Pointer(cSource))
-	defer C.free(unsafe.Pointer(cOrigin))
+	defer C.freeAny(unsafe.Pointer(cSource))
+	defer C.freeAny(unsafe.Pointer(cOrigin))
 
 	var cOptions C.CompileOptions
 	if opts.CachedData != nil {

@@ -28,9 +28,9 @@ func newJSError(rtnErr C.RtnError) error {
 		Location:   C.GoString(rtnErr.location),
 		StackTrace: C.GoString(rtnErr.stack),
 	}
-	C.free(unsafe.Pointer(rtnErr.msg))
-	C.free(unsafe.Pointer(rtnErr.location))
-	C.free(unsafe.Pointer(rtnErr.stack))
+	C.freeAny(unsafe.Pointer(rtnErr.msg))
+	C.freeAny(unsafe.Pointer(rtnErr.location))
+	C.freeAny(unsafe.Pointer(rtnErr.stack))
 	return err
 }
 

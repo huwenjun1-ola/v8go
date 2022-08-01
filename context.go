@@ -88,8 +88,8 @@ func (c *Context) Isolate() *Isolate {
 func (c *Context) RunScript(source string, origin string) (*Value, error) {
 	cSource := C.CString(source)
 	cOrigin := C.CString(origin)
-	defer C.free(unsafe.Pointer(cSource))
-	defer C.free(unsafe.Pointer(cOrigin))
+	defer C.freeAny(unsafe.Pointer(cSource))
+	defer C.freeAny(unsafe.Pointer(cOrigin))
 
 	rtn := C.RunScript(c.ptr, cSource, cOrigin)
 	return valueResult(c, rtn)

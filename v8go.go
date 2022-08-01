@@ -30,5 +30,5 @@ func Version() string {
 func SetFlags(flags ...string) {
 	cflags := C.CString(strings.Join(flags, " "))
 	C.SetFlags(cflags)
-	C.free(unsafe.Pointer(cflags))
+	C.freeAny(unsafe.Pointer(cflags))
 }

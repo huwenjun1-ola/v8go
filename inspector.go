@@ -122,7 +122,7 @@ func (i *InspectorServer) StartWebSocketServer(port uint32) {
 }
 
 func (i *InspectorServer) Destroy() {
-	C.free(unsafe.Pointer(i.InspectorClientPtr))
+	C.freeAny(unsafe.Pointer(i.InspectorClientPtr))
 	i.InspectorClientPtr = nil
 	globalInspectorMap.Delete(i.InspectorId)
 	i.Server.Shutdown(context.TODO())

@@ -21,7 +21,7 @@ type Object struct {
 
 func (o *Object) MethodCall(methodName string, args ...Valuer) (*Value, error) {
 	ckey := C.CString(methodName)
-	defer C.free(unsafe.Pointer(ckey))
+	defer C.freeAny(unsafe.Pointer(ckey))
 
 	getRtn := C.ObjectGet(o.ptr, ckey)
 	prop, err := valueResult(o.ctx, getRtn)
@@ -64,7 +64,7 @@ func (o *Object) Set(key string, val interface{}) error {
 	}
 
 	ckey := C.CString(key)
-	defer C.free(unsafe.Pointer(ckey))
+	defer C.freeAny(unsafe.Pointer(ckey))
 	C.ObjectSet(o.ptr, ckey, value.ptr)
 	return nil
 }
@@ -111,7 +111,7 @@ func (o *Object) InternalFieldCount() uint32 {
 // Get tries to get a Value for a given Object property key.
 func (o *Object) Get(key string) (*Value, error) {
 	ckey := C.CString(key)
-	defer C.free(unsafe.Pointer(ckey))
+	defer C.freeAny(unsafe.Pointer(ckey))
 
 	rtn := C.ObjectGet(o.ptr, ckey)
 	return valueResult(o.ctx, rtn)
@@ -139,7 +139,7 @@ func (o *Object) GetIdx(idx uint32) (*Value, error) {
 // Returns true, if the object has the property, either own or on the prototype chain.
 func (o *Object) Has(key string) bool {
 	ckey := C.CString(key)
-	defer C.free(unsafe.Pointer(ckey))
+	defer C.freeAny(unsafe.Pointer(ckey))
 	return C.ObjectHas(o.ptr, ckey) != 0
 }
 
@@ -151,7 +151,7 @@ func (o *Object) HasIdx(idx uint32) bool {
 // Delete returns true if successful in deleting a named property on the object.
 func (o *Object) Delete(key string) bool {
 	ckey := C.CString(key)
-	defer C.free(unsafe.Pointer(ckey))
+	defer C.freeAny(unsafe.Pointer(ckey))
 	return C.ObjectDelete(o.ptr, ckey) != 0
 }
 

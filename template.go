@@ -26,7 +26,7 @@ type template struct {
 // then a value will be created and set as the value property.
 func (t *template) Set(name string, val interface{}, attributes ...PropertyAttribute) error {
 	cname := C.CString(name)
-	defer C.free(unsafe.Pointer(cname))
+	defer C.freeAny(unsafe.Pointer(cname))
 
 	var attrs PropertyAttribute
 	for _, a := range attributes {
