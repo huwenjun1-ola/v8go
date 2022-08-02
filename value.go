@@ -81,7 +81,7 @@ func NewValue(iso *Isolate, val interface{}) (*Value, error) {
 	switch v := val.(type) {
 	case string:
 		cstr := C.CString(v)
-		defer C.freeAny(unsafe.Pointer(cstr))
+		defer FreeCPtr(unsafe.Pointer(cstr))
 		rtn := C.NewValueString(iso.ptr, cstr)
 		return valueResult(nil, rtn)
 	case int8:
@@ -196,7 +196,7 @@ func (v *Value) Format(s fmt.State, verb rune) {
 // ArrayIndex attempts to converts a string to an array index. Returns ok false if conversion fails.
 func (v *Value) ArrayIndex() (idx uint32, ok bool) {
 	arrayIdx := C.ValueToArrayIndex(v.ptr)
-	defer C.freeAny(unsafe.Pointer(arrayIdx))
+	defer FreeCPtr(unsafe.Pointer(arrayIdx))
 	if arrayIdx == nil {
 		return 0, false
 	}
@@ -209,7 +209,7 @@ func (v *Value) BigInt() *big.Int {
 		return nil
 	}
 	bint := C.ValueToBigInt(v.ptr)
-	defer C.freeAny(unsafe.Pointer(bint.word_array))
+	defer FreeCPtr(unsafe.Pointer(bint.word_array))
 	if bint.word_array == nil {
 		return nil
 	}
@@ -241,7 +241,7 @@ func (v *Value) DetailString() string {
 		panic(err) // TODO: Return a fallback value
 	}
 	s := rtn.string
-	defer C.freeAny(unsafe.Pointer(s))
+	defer FreeCPtr(unsafe.Pointer(s))
 	return C.GoString(s)
 }
 
@@ -279,8 +279,9 @@ func (v *Value) Object() *Object {
 // print their definition.
 func (v *Value) String() string {
 	s := C.ValueToString(v.ptr)
-	defer C.freeAny(unsafe.Pointer(s))
-	return C.GoString(s)
+	gostring := C.GoString(s)
+	FreeAnyCPtr(unsafe.Pointer(s))
+	return gostring
 }
 
 // Uint32 perform the equivalent of `Number(value)` in JS and convert the result to an

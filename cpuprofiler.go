@@ -47,7 +47,7 @@ func (c *CPUProfiler) StartProfiling(title string) {
 	}
 
 	tstr := C.CString(title)
-	defer C.freeAny(unsafe.Pointer(tstr))
+	defer FreeCPtr(unsafe.Pointer(tstr))
 
 	C.CPUProfilerStartProfiling(c.p, tstr)
 }
@@ -60,7 +60,7 @@ func (c *CPUProfiler) StopProfiling(title string) *CPUProfile {
 	}
 
 	tstr := C.CString(title)
-	defer C.freeAny(unsafe.Pointer(tstr))
+	defer FreeCPtr(unsafe.Pointer(tstr))
 
 	profile := C.CPUProfilerStopProfiling(c.p, tstr)
 

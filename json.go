@@ -19,7 +19,7 @@ func JSONParse(ctx *Context, str string) (*Value, error) {
 		return nil, errors.New("v8go: Context is required")
 	}
 	cstr := C.CString(str)
-	defer C.freeAny(unsafe.Pointer(cstr))
+	defer FreeCPtr(unsafe.Pointer(cstr))
 
 	rtn := C.JSONParse(ctx.ptr, cstr)
 	return valueResult(ctx, rtn)
@@ -37,6 +37,6 @@ func JSONStringify(ctx *Context, val Valuer) (string, error) {
 	}
 
 	str := C.JSONStringify(ctxPtr, val.value().ptr)
-	defer C.freeAny(unsafe.Pointer(str))
+	defer FreeCPtr(unsafe.Pointer(str))
 	return C.GoString(str), nil
 }

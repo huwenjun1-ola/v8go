@@ -18,7 +18,7 @@ import (
 // Version returns the version of the V8 Engine with the -v8go suffix
 func Version() string {
 	ccharptr := C.Version()
-	defer C.freeAny(unsafe.Pointer(ccharptr))
+	defer FreeCPtr(unsafe.Pointer(ccharptr))
 	ret := C.GoString(ccharptr)
 	return ret
 }
@@ -30,5 +30,5 @@ func Version() string {
 func SetFlags(flags ...string) {
 	cflags := C.CString(strings.Join(flags, " "))
 	C.SetFlags(cflags)
-	C.freeAny(unsafe.Pointer(cflags))
+	FreeCPtr(unsafe.Pointer(cflags))
 }
