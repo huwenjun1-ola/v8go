@@ -8,7 +8,7 @@ package v8go
 // #include "v8go.h"
 import "C"
 import (
-	"runtime"
+	"time"
 	"unsafe"
 )
 
@@ -56,17 +56,19 @@ func NewFunctionTemplate(iso *Isolate, callback FunctionCallback) *FunctionTempl
 	cbref := iso.registerCallback(callback)
 
 	tmpl := &template{
-		ptr: C.NewFunctionTemplate(iso.ptr, C.int(cbref)),
-		iso: iso,
+		ptr:  C.NewFunctionTemplate(iso.ptr, C.int(cbref)),
+		iso:  iso,
+		Name: time.Now().String(),
 	}
-	runtime.SetFinalizer(tmpl, (*template).finalizer)
+	iso.templateLock.Lock()
+	defer iso.templateLock.Unlock()
+	iso.templates = append(iso.templates, tmpl)
 	return &FunctionTemplate{tmpl}
 }
 
 // GetFunction returns an instance of this function template bound to the given context.
 func (tmpl *FunctionTemplate) GetFunction(ctx *Context) *Function {
 	rtn := C.FunctionTemplateGetFunction(tmpl.ptr, ctx.ptr)
-	runtime.KeepAlive(tmpl)
 	val, err := valueResult(ctx, rtn)
 	if err != nil {
 		panic(err) // TODO: Consider returning the error

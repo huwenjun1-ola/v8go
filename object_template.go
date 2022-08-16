@@ -9,7 +9,7 @@ package v8go
 import "C"
 import (
 	"errors"
-	"runtime"
+	"time"
 )
 
 // PropertyAttribute are the attribute flags for a property on an Object.
@@ -42,10 +42,13 @@ func NewObjectTemplate(iso *Isolate) *ObjectTemplate {
 	}
 
 	tmpl := &template{
-		ptr: C.NewObjectTemplate(iso.ptr),
-		iso: iso,
+		ptr:  C.NewObjectTemplate(iso.ptr),
+		iso:  iso,
+		Name: time.Now().String(),
 	}
-	runtime.SetFinalizer(tmpl, (*template).finalizer)
+	iso.templateLock.Lock()
+	defer iso.templateLock.Unlock()
+	iso.templates = append(iso.templates, tmpl)
 	return &ObjectTemplate{tmpl}
 }
 
@@ -54,9 +57,7 @@ func (o *ObjectTemplate) NewInstance(ctx *Context) (*Object, error) {
 	if ctx == nil {
 		return nil, errors.New("v8go: Context cannot be <nil>")
 	}
-
 	rtn := C.ObjectTemplateNewInstance(o.ptr, ctx.ptr)
-	runtime.KeepAlive(o)
 	return objectResult(ctx, rtn)
 }
 

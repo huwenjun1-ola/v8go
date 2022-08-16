@@ -1,14 +1,23 @@
 package main
 
 import (
-	"fmt"
 	"gitee.com/hasika/v8go"
+	"runtime"
 )
 
 func main() {
-	iso := v8go.NewIsolate()
-	defer func() {
+
+	for i := 0; i < 10000; i++ {
+		iso := v8go.NewIsolate()
+		ctx := v8go.NewContext(iso)
+		ctx.Close()
 		iso.Dispose()
-	}()
-	fmt.Println("abc")
+	}
+	runtime.GC()
+}
+
+func getInUse() uint64 {
+	mem2 := &runtime.MemStats{}
+	runtime.ReadMemStats(mem2)
+	return mem2.Alloc - mem2.Frees
 }

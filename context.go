@@ -8,7 +8,6 @@ package v8go
 // #include "v8go.h"
 import "C"
 import (
-	"runtime"
 	"sync"
 	"unsafe"
 )
@@ -58,21 +57,18 @@ func NewContext(opt ...ContextOption) *Context {
 	}
 
 	if opts.gTmpl == nil {
-		opts.gTmpl = &ObjectTemplate{&template{}}
+		opts.gTmpl = NewObjectTemplate(opts.iso)
 	}
-
 	ctxMutex.Lock()
 	ctxSeq++
 	ref := ctxSeq
 	ctxMutex.Unlock()
-
 	ctx := &Context{
 		ref: ref,
 		ptr: C.NewContext(opts.iso.ptr, opts.gTmpl.ptr, C.int(ref)),
 		iso: opts.iso,
 	}
 	ctx.register()
-	runtime.KeepAlive(opts.gTmpl)
 	return ctx
 }
 

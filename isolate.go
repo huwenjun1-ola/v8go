@@ -27,6 +27,9 @@ type Isolate struct {
 
 	null      *Value
 	undefined *Value
+
+	templateLock sync.Mutex
+	templates    []ITemplate
 }
 
 // HeapStatistics represents V8 isolate heap statistics
@@ -147,6 +150,12 @@ func (i *Isolate) Dispose() {
 	if i.ptr == nil {
 		return
 	}
+	i.templateLock.Lock()
+	defer i.templateLock.Unlock()
+	for _, tpl := range i.templates {
+		tpl.finalizer()
+	}
+	i.templates = nil
 	C.IsolateDispose(i.ptr)
 	i.ptr = nil
 }
