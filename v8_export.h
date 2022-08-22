@@ -262,6 +262,10 @@ extern V8GO_EXPORT RtnString ValueToDetailString(ValuePtr ptr);
 
 extern V8GO_EXPORT uint32_t ValueToUint32(ValuePtr ptr);
 
+extern size_t GetArrayBufferViewByteLen(ValuePtr ptr);
+
+extern size_t CopyArrayBufferViewContent(ValuePtr ptr, void *dest);
+
 extern V8GO_EXPORT  ValueBigInt ValueToBigInt(ValuePtr ptr);
 
 extern V8GO_EXPORT  RtnValue ValueToObject(ValuePtr ptr);

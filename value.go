@@ -615,3 +615,11 @@ func (v *Value) MarshalJSON() ([]byte, error) {
 	}
 	return []byte(jsonStr), nil
 }
+
+func (v *Value) GetCopiedArrayBufferViewContents() []byte {
+	bufferViewByteLen := C.GetArrayBufferViewByteLen(v.ptr)
+	buffer := make([]byte, int(bufferViewByteLen))
+	ptr := unsafe.Pointer(&buffer[0])
+	copiedLen := C.CopyArrayBufferViewContent(v.ptr, ptr)
+	return buffer[0:copiedLen]
+}

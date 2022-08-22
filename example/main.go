@@ -1,18 +1,29 @@
 package main
 
 import (
+	"fmt"
 	"gitee.com/hasika/v8go"
 	"runtime"
 )
 
 func main() {
 
-	for i := 0; i < 10000; i++ {
-		iso := v8go.NewIsolate()
-		ctx := v8go.NewContext(iso)
-		ctx.Close()
-		iso.Dispose()
+	//for i := 0; i < 10000; i++ {
+	iso := v8go.NewIsolate()
+	ctx := v8go.NewContext(iso)
+	_, err := ctx.RunScript("var x=new Uint8Array([1,3,4,5]);globalThis.x=x;", "test.js")
+	if err != nil {
+		panic(err)
 	}
+	x, xerr := ctx.Global().Get("x")
+	if xerr != nil {
+		panic(err)
+	}
+	copied := x.GetCopiedArrayBufferViewContents()
+	fmt.Println(len(copied))
+	ctx.Close()
+	iso.Dispose()
+	//}
 	runtime.GC()
 }
 

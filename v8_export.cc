@@ -980,6 +980,24 @@ uint32_t ValueToUint32(ValuePtr ptr) {
     return value->Uint32Value(local_ctx).ToChecked();
 }
 
+size_t GetArrayBufferViewByteLen(ValuePtr ptr){
+    LOCAL_VALUE(ptr);
+    if (!value->IsArrayBufferView()){
+        return 0;
+    }
+    ArrayBufferView* bufferView=ArrayBufferView::Cast(value.operator->());
+    return bufferView->ByteLength();
+}
+
+size_t  CopyArrayBufferViewContent(ValuePtr ptr,void* dest){
+    LOCAL_VALUE(ptr);
+    if (!value->IsArrayBufferView()){
+        return 0;
+    }
+    ArrayBufferView* bufferView=ArrayBufferView::Cast(value.operator->());
+    return bufferView->CopyContents(dest,bufferView->ByteLength());
+}
+
 ValueBigInt ValueToBigInt(ValuePtr ptr) {
     LOCAL_VALUE(ptr);
     Local<BigInt> bint;
