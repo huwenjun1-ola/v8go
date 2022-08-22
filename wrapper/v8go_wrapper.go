@@ -107,3 +107,20 @@ func (v *V8JsEnv) NewValue(goValue interface{}) (IValue, error) {
 func (v *V8JsEnv) RunScript(script string, fullPath string) (IValue, error) {
 	return v.Ctx.RunScript(script, fullPath)
 }
+
+func (v *V8JsEnv) ConvertUint8ArrayToGoSlice(object IObject) []byte {
+	uint8ArrObj := object.(*v8go.Object)
+	arrayLenV, err := uint8ArrObj.Get("length")
+	if err != nil {
+		panic(err)
+	}
+	arrayLen := arrayLenV.Integer()
+	var byteArray []byte = nil
+	var index int64
+	for index = 0; index < arrayLen; index++ {
+		v, _ := uint8ArrObj.GetIdx(uint32(index))
+		b := v.Integer()
+		byteArray = append(byteArray, byte(b))
+	}
+	return byteArray
+}
