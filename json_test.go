@@ -49,7 +49,7 @@ func ExampleJSONParse() {
 	val, _ := v8.JSONParse(ctx, `{"foo": "bar"}`)
 	fmt.Println(val)
 	// Output:
-	// [object ConvertToObject]
+	// [object Object]
 }
 
 func ExampleJSONStringify() {

@@ -430,7 +430,7 @@ func TestValueObject(t *testing.T) {
 		if _, err := val.AsObject(); err == nil {
 			t.Error("Expected error but got <nil>")
 		}
-		if obj := val.ConvertToObject(); obj.String() != "1" {
+		if obj := val.Object(); obj.String() != "1" {
 			t.Errorf("unexpected object value: %v", obj)
 		}
 	}
