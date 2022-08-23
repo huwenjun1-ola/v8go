@@ -10,6 +10,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	ts_in_go "gitee.com/hasika/ts-in-go"
 	"math/big"
 	"unsafe"
 )
@@ -110,6 +111,15 @@ func (o *Object) InternalFieldCount() uint32 {
 
 // Get tries to get a Value for a given Object property key.
 func (o *Object) Get(key string) (*Value, error) {
+	ckey := C.CString(key)
+	defer FreeCPtr(unsafe.Pointer(ckey))
+
+	rtn := C.ObjectGet(o.ptr, ckey)
+	return valueResult(o.ctx, rtn)
+}
+
+// Get tries to get a Value for a given Object property key.
+func (o *Object) GetValue(key string) (ts_in_go.IValue, error) {
 	ckey := C.CString(key)
 	defer FreeCPtr(unsafe.Pointer(ckey))
 
