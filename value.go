@@ -10,6 +10,7 @@ import "C"
 import (
 	"errors"
 	"fmt"
+	ts_in_go "gitee.com/hasika/ts-in-go"
 	"io"
 	"math/big"
 	"unsafe"
@@ -265,7 +266,7 @@ func (v *Value) Number() float64 {
 
 // Object perform the equivalent of Object(value) in JS.
 // To just cast this value as an Object use AsObject() instead.
-func (v *Value) Object() *Object {
+func (v *Value) ConvertToObject() *Object {
 	rtn := C.ValueToObject(v.ptr)
 	obj, err := objectResult(v.ctx, rtn)
 	if err != nil {
@@ -291,7 +292,7 @@ func (v *Value) Uint32() uint32 {
 }
 
 // SameValue returns true if the other value is the same value.
-// This is equivalent to `Object.is(v, other)` in JS.
+// This is equivalent to `ConvertToObject.is(v, other)` in JS.
 func (v *Value) SameValue(other *Value) bool {
 	return C.ValueSameValue(v.ptr, other.ptr) != 0
 }
@@ -577,20 +578,24 @@ func (v *Value) IsWasmModuleObject() bool {
 	return C.ValueIsWasmModuleObject(v.ptr) != 0
 }
 
-// IsModuleNamespaceObject returns true if the value is a `Module` Namespace `Object`.
+// IsModuleNamespaceObject returns true if the value is a `Module` Namespace `ConvertToObject`.
 func (v *Value) IsModuleNamespaceObject() bool {
 	// TODO(rogchap): requires test case
 	return C.ValueIsModuleNamespaceObject(v.ptr) != 0
 }
 
 // AsObject will cast the value to the Object type. If the value is not an Object
-// then an error is returned. Use `value.Object()` to do the JS equivalent of `Object(value)`.
+// then an error is returned. Use `value.ConvertToObject()` to do the JS equivalent of `ConvertToObject(value)`.
 func (v *Value) AsObject() (*Object, error) {
 	if !v.IsObject() {
 		return nil, errors.New("v8go: value is not an Object")
 	}
 
 	return &Object{v}, nil
+}
+
+func (v *Value) Object() (ts_in_go.IObject, error) {
+	return v.AsObject()
 }
 
 func (v *Value) AsPromise() (*Promise, error) {

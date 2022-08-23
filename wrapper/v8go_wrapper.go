@@ -80,7 +80,7 @@ func (v *V8JsEnv) NewFunctionTemplate(call GoFunCallBack) IFunctionTemplate {
 	v8Template := v8go.NewFunctionTemplate(v.Iso, func(info *v8go.FunctionCallbackInfo) *v8go.Value {
 		args := make([]IObject, len(info.Args()))
 		for i, value := range info.Args() {
-			args[i] = value.Object()
+			args[i] = value.ConvertToObject()
 		}
 		ret := call(&CommonFunctionCallbackInfo{
 			This: info.This(),

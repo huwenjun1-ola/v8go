@@ -1,5 +1,9 @@
-gitee.com/hasika/ts-in-go v0.0.0-20220823021358-5b822f53da7b h1:ZcyloAZWt+HgQKo73X9f3vzSXIHj3c1xBxqX1f9s9Ow=
-gitee.com/hasika/ts-in-go v0.0.0-20220823021358-5b822f53da7b/go.mod h1:sIjHvWqdd8H5Gr4ebQ1BT4CMcpNvVCyW/WHzYSzq9Hs=
+gitee.com/hasika/ts-in-go v0.0.0-20220823022126-f49db259408d h1:nTPPaLFnrgfNJUV0MADl6TyVvYjd4OICJs/59vRX+50=
+gitee.com/hasika/ts-in-go v0.0.0-20220823022126-f49db259408d/go.mod h1:sIjHvWqdd8H5Gr4ebQ1BT4CMcpNvVCyW/WHzYSzq9Hs=
+gitee.com/hasika/ts-in-go v0.0.0-20220823022211-0ddd79ab8924 h1:0pj/lUwDuqac+qXzsqa5/4ww5VMTi0Ot3jxz+WR5KtY=
+gitee.com/hasika/ts-in-go v0.0.0-20220823022211-0ddd79ab8924/go.mod h1:sIjHvWqdd8H5Gr4ebQ1BT4CMcpNvVCyW/WHzYSzq9Hs=
+gitee.com/hasika/ts-in-go v0.0.0-20220823022337-880ce55fce4e h1:lsALDjouZX8zv60sC+29k9hrfAG/mumfIcEccF6b6XY=
+gitee.com/hasika/ts-in-go v0.0.0-20220823022337-880ce55fce4e/go.mod h1:sIjHvWqdd8H5Gr4ebQ1BT4CMcpNvVCyW/WHzYSzq9Hs=
 golang.org/x/net v0.0.0-20220728211354-c7608f3a8462 h1:UreQrH7DbFXSi9ZFox6FNT3WBooWmdANpU+IfkT1T4I=
 golang.org/x/net v0.0.0-20220728211354-c7608f3a8462/go.mod h1:YDH+HFinaLZZlnHAfSS6ZXJJ9M9t4Dl22yv3iI2vPwk=
 golang.org/x/sys v0.0.0-20210615035016-665e8c7367d1/go.mod h1:oPkhp1MJrh7nUepCBck5+mAzfO9JrbApNNgaTdGDITg=
