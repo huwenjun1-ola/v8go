@@ -37,6 +37,6 @@ func JSONStringify(ctx *Context, val Valuer) (string, error) {
 	}
 
 	str := C.JSONStringify(ctxPtr, val.value().ptr)
-	defer FreeCPtr(unsafe.Pointer(str))
+	defer FreeModuleCPtr(unsafe.Pointer(str))
 	return C.GoString(str), nil
 }

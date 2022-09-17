@@ -10,6 +10,6 @@ import (
 func FreeCPtr(ptr unsafe.Pointer) {
 	C.free(ptr)
 }
-func FreeAnyCPtr(ptr unsafe.Pointer) {
+func FreeModuleCPtr(ptr unsafe.Pointer) {
 	C.freeAny(ptr)
 }

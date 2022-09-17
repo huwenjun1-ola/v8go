@@ -241,7 +241,7 @@ func (v *Value) DetailString() string {
 		panic(err) // TODO: Return a fallback value
 	}
 	s := rtn.string
-	defer FreeCPtr(unsafe.Pointer(s))
+	defer FreeModuleCPtr(unsafe.Pointer(s))
 	return C.GoString(s)
 }
 
@@ -280,7 +280,7 @@ func (v *Value) Object() *Object {
 func (v *Value) String() string {
 	s := C.ValueToString(v.ptr)
 	gostring := C.GoString(s)
-	FreeAnyCPtr(unsafe.Pointer(s))
+	FreeModuleCPtr(unsafe.Pointer(s))
 	return gostring
 }
 
