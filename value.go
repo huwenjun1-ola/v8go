@@ -68,7 +68,6 @@ func Null(iso *Isolate) *Value {
 
 func ReleaseValuePtrInC(value *Value) {
 	if value.ctx != nil && value.ctx.stopped {
-		fmt.Println("wild pointer")
 		return
 	}
 	C.deleteRecordValuePtr(value.ptr)
