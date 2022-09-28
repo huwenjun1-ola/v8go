@@ -66,7 +66,7 @@ func NewIsolate() *Isolate {
 	ref = ctxSeq
 	ctxMutex.Unlock()
 	iso := &Isolate{
-		ptr: C.NewIsolate(ref),
+		ptr: C.NewIsolate(C.int(ref)),
 		cbs: make(map[int]FunctionCallback),
 	}
 	contextPtr := C.getDefaultContext(iso.ptr)
