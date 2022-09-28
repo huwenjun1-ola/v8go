@@ -166,7 +166,7 @@ void Init() {
     return;
 }
 
-IsolatePtr NewIsolate() {
+IsolatePtr NewIsolate(int ref) {
     Isolate::CreateParams params;
     params.array_buffer_allocator = default_allocator;
     Isolate *iso = Isolate::New(params);
@@ -178,9 +178,9 @@ IsolatePtr NewIsolate() {
 
     // Create a Context for internal use
     m_ctx *ctx = new m_ctx;
-    ctx->ref = -1;
+    ctx->ref = ref;
     const Local<Context> &local = Context::New(iso);
-    local->SetEmbedderData(1, Integer::New(iso, -1));
+    local->SetEmbedderData(1, Integer::New(iso, ref));
     ctx->ptr.Reset(iso, local);
     ctx->iso = iso;
     iso->SetData(0, ctx);

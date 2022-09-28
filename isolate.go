@@ -60,13 +60,19 @@ func NewIsolate() *Isolate {
 		C.Init()
 		C.InitV8GoCallBack()
 	})
+	var ref int
+	ctxMutex.Lock()
+	ctxSeq++
+	ref = ctxSeq
+	ctxMutex.Unlock()
 	iso := &Isolate{
-		ptr: C.NewIsolate(),
+		ptr: C.NewIsolate(ref),
 		cbs: make(map[int]FunctionCallback),
 	}
 	contextPtr := C.getDefaultContext(iso.ptr)
+
 	ctx := &Context{
-		ref: -1,
+		ref: ref,
 		ptr: contextPtr,
 		iso: iso,
 	}

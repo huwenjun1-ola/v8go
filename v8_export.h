@@ -144,7 +144,7 @@ InitV8Go(m_ctx *(*getGoContextFuncEntry)(int), ValuePtr (*goFunctionCallbackEntr
          void (*goTickFuncEntry)(int32_t), void (*goSendMessageFuncEntry)(int32_t, const char *));
 extern V8GO_EXPORT void Init();
 
-extern V8GO_EXPORT IsolatePtr NewIsolate();
+extern V8GO_EXPORT IsolatePtr NewIsolate(int ref);
 
 extern V8GO_EXPORT void IsolatePerformMicrotaskCheckpoint(IsolatePtr ptr);
 
