@@ -454,6 +454,8 @@ extern V8GO_EXPORT void freeV8GoPtr(void *p);
 
 extern V8GO_EXPORT void deleteRecordValuePtr(ValuePtr p);
 
+extern V8GO_EXPORT int getCtxStorageSize(ContextPtr ctx);
+
 #ifdef __cplusplus
 }  // extern V8GO_EXPORT "C"
 #endif

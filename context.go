@@ -118,6 +118,10 @@ func (c *Context) Close() {
 	c.ptr = nil
 }
 
+func (c *Context) StorageSize() int {
+	return int(C.getCtxStorageSize(c.ptr))
+}
+
 func (c *Context) register() {
 	ctxMutex.Lock()
 	r := ctxRegistry[c.ref]

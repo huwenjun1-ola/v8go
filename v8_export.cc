@@ -1694,5 +1694,13 @@ void deleteRecordValuePtr(ValuePtr p) {
         delete p;
     }
 }
+
+int getCtxStorageSize(ContextPtr ctx){
+    if (ctx == 0) {
+        return 0;
+    }
+    return ctx->vals.size();
+}
+
 }
 #endif
