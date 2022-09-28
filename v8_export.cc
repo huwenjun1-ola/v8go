@@ -1688,6 +1688,7 @@ void deleteRecordValuePtr(ValuePtr p) {
         return;
     }
     m_ctx *ctx = p->ctx;
+    p->ptr.Reset();
     auto v = std::find(ctx->vals.begin(), ctx->vals.end(), p);
     if (v.operator->() != nullptr) {
         ctx->vals.erase(v);
