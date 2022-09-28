@@ -168,9 +168,7 @@ func (i *Isolate) ThrowException(value *Value) *Value {
 	if i.ptr == nil {
 		panic("Isolate has been disposed")
 	}
-	return &Value{
-		ptr: C.IsolateThrowException(i.ptr, value.ptr),
-	}
+	return NewValueStruct(C.IsolateThrowException(i.ptr, value.ptr), nil)
 }
 
 // Deprecated: use `iso.Dispose()`.

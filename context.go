@@ -100,7 +100,7 @@ func (c *Context) RunScript(source string, origin string) (*Value, error) {
 // global proxy object.
 func (c *Context) Global() *Object {
 	valPtr := C.ContextGlobal(c.ptr)
-	v := &Value{valPtr, c}
+	v := NewValueStruct(valPtr, c)
 	return &Object{v}
 }
 
@@ -162,12 +162,12 @@ func valueResult(ctx *Context, rtn C.RtnValue) (*Value, error) {
 	if rtn.value == nil {
 		return nil, newJSError(rtn.error)
 	}
-	return &Value{rtn.value, ctx}, nil
+	return NewValueStruct(rtn.value, ctx), nil
 }
 
 func objectResult(ctx *Context, rtn C.RtnValue) (*Object, error) {
 	if rtn.value == nil {
 		return nil, newJSError(rtn.error)
 	}
-	return &Object{&Value{rtn.value, ctx}}, nil
+	return &Object{NewValueStruct(rtn.value, ctx)}, nil
 }

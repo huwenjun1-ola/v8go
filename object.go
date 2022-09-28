@@ -125,7 +125,7 @@ func (o *Object) GetInternalField(idx uint32) *Value {
 	if rtn == nil {
 		panic(fmt.Errorf("index out of range [%v] with length %v", idx, o.InternalFieldCount()))
 	}
-	return &Value{rtn, o.ctx}
+	return NewValueStruct(rtn, o.ctx)
 
 }
 

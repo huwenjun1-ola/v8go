@@ -53,7 +53,7 @@ func NewPromiseResolver(ctx *Context) (*PromiseResolver, error) {
 func (r *PromiseResolver) GetPromise() *Promise {
 	if r.prom == nil {
 		ptr := C.PromiseResolverGetPromise(r.ptr)
-		val := &Value{ptr, r.ctx}
+		val := NewValueStruct(ptr, r.ctx)
 		r.prom = &Promise{&Object{val}}
 	}
 	return r.prom
@@ -81,7 +81,7 @@ func (p *Promise) State() PromiseState {
 // to validate state before calling for the result.
 func (p *Promise) Result() *Value {
 	ptr := C.PromiseResult(p.ptr)
-	val := &Value{ptr, p.ctx}
+	val := NewValueStruct(ptr, p.ctx)
 	return val
 }
 

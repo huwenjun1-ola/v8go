@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"runtime"
 	"unsafe"
 )
 
@@ -19,6 +20,16 @@ import (
 type Value struct {
 	ptr C.ValuePtr
 	ctx *Context
+}
+
+func NewValueStruct(valPtr C.ValuePtr, c *Context) (ret *Value) {
+	defer func() {
+		runtime.SetFinalizer(ret, ReleaseValuePtrInC)
+	}()
+	return &Value{
+		ptr: valPtr,
+		ctx: c,
+	}
 }
 
 // Valuer is an interface that reperesents anything that extends from a Value
@@ -32,15 +43,11 @@ func (v *Value) value() *Value {
 }
 
 func newValueNull(iso *Isolate) *Value {
-	return &Value{
-		ptr: C.NewValueNull(iso.ptr),
-	}
+	return NewValueStruct(C.NewValueNull(iso.ptr), nil)
 }
 
 func newValueUndefined(iso *Isolate) *Value {
-	return &Value{
-		ptr: C.NewValueUndefined(iso.ptr),
-	}
+	return NewValueStruct(C.NewValueUndefined(iso.ptr), nil)
 }
 
 // Undefined returns the `undefined` JS value
@@ -51,6 +58,10 @@ func Undefined(iso *Isolate) *Value {
 // Null returns the `null` JS value
 func Null(iso *Isolate) *Value {
 	return iso.null
+}
+
+func ReleaseValuePtrInC(value *Value) {
+	C.deleteRecordValuePtr(value.ptr)
 }
 
 // NewValue will create a primitive value. Supported values types to create are:
@@ -71,12 +82,10 @@ func Null(iso *Isolate) *Value {
 //   bool -> V8::Boolean
 //   bool -> V8::Boolean
 //   *big.Int -> V8::BigInt
-func NewValue(iso *Isolate, val interface{}) (*Value, error) {
+func NewValue(iso *Isolate, val interface{}) (rtnVal *Value, e error) {
 	if iso == nil {
 		return nil, errors.New("v8go: failed to create new Value: Isolate cannot be <nil>")
 	}
-
-	var rtnVal *Value
 
 	switch v := val.(type) {
 	case string:
@@ -85,73 +94,43 @@ func NewValue(iso *Isolate, val interface{}) (*Value, error) {
 		rtn := C.NewValueString(iso.ptr, cstr)
 		return valueResult(nil, rtn)
 	case int8:
-		rtnVal = &Value{
-			ptr: C.NewValueInteger(iso.ptr, C.int(int32(v))),
-		}
+		rtnVal = NewValueStruct(C.NewValueInteger(iso.ptr, C.int(int32(v))), nil)
 	case int16:
-		rtnVal = &Value{
-			ptr: C.NewValueInteger(iso.ptr, C.int(int32(v))),
-		}
+		rtnVal = NewValueStruct(C.NewValueInteger(iso.ptr, C.int(int32(v))), nil)
 	case int32:
-		rtnVal = &Value{
-			ptr: C.NewValueInteger(iso.ptr, C.int(v)),
-		}
+		rtnVal = NewValueStruct(C.NewValueInteger(iso.ptr, C.int(v)), nil)
 	case uint8:
-		rtnVal = &Value{
-			ptr: C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(uint32(v))),
-		}
+		rtnVal = NewValueStruct(C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(uint32(v))), nil)
 	case uint16:
-		rtnVal = &Value{
-			ptr: C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(uint32(v))),
-		}
+		rtnVal = NewValueStruct(C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(uint32(v))), nil)
 	case uint32:
-		rtnVal = &Value{
-			ptr: C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(v)),
-		}
+		rtnVal = NewValueStruct(C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(v)), nil)
 	case int:
-		rtnVal = &Value{
-			ptr: C.NewValueBigInt(iso.ptr, C.int64_t(int64(v))),
-		}
+		rtnVal = NewValueStruct(C.NewValueBigInt(iso.ptr, C.int64_t(int64(v))), nil)
 	case uint:
-		rtnVal = &Value{
-			ptr: C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(uint64(v))),
-		}
+		rtnVal = NewValueStruct(C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(uint64(v))), nil)
 	case int64:
-		rtnVal = &Value{
-			ptr: C.NewValueBigInt(iso.ptr, C.int64_t(v)),
-		}
+		rtnVal = NewValueStruct(C.NewValueBigInt(iso.ptr, C.int64_t(v)), nil)
 	case uint64:
-		rtnVal = &Value{
-			ptr: C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(v)),
-		}
+		rtnVal = NewValueStruct(C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(v)), nil)
 	case bool:
 		var b int
 		if v {
 			b = 1
 		}
-		rtnVal = &Value{
-			ptr: C.NewValueBoolean(iso.ptr, C.int(b)),
-		}
+		rtnVal = NewValueStruct(C.NewValueBoolean(iso.ptr, C.int(b)), nil)
 	case float32:
-		rtnVal = &Value{
-			ptr: C.NewValueNumber(iso.ptr, C.double(float64(v))),
-		}
+		rtnVal = NewValueStruct(C.NewValueNumber(iso.ptr, C.double(float64(v))), nil)
 	case float64:
-		rtnVal = &Value{
-			ptr: C.NewValueNumber(iso.ptr, C.double(v)),
-		}
+		rtnVal = NewValueStruct(C.NewValueNumber(iso.ptr, C.double(v)), nil)
 	case *big.Int:
 		if v.IsInt64() {
-			rtnVal = &Value{
-				ptr: C.NewValueBigInt(iso.ptr, C.int64_t(v.Int64())),
-			}
+			rtnVal = NewValueStruct(C.NewValueBigInt(iso.ptr, C.int64_t(v.Int64())), nil)
 			break
 		}
 
 		if v.IsUint64() {
-			rtnVal = &Value{
-				ptr: C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(v.Uint64())),
-			}
+			rtnVal = NewValueStruct(C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(v.Uint64())), nil)
 			break
 		}
 
@@ -241,7 +220,7 @@ func (v *Value) DetailString() string {
 		panic(err) // TODO: Return a fallback value
 	}
 	s := rtn.string
-	defer FreeModuleCPtr(unsafe.Pointer(s))
+	defer FreeCPtr(unsafe.Pointer(s))
 	return C.GoString(s)
 }
 

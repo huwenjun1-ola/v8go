@@ -7,6 +7,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <unordered_map>
 #include <functional>
 #include "V8InspectorClientImpl.h"
 
@@ -912,6 +913,7 @@ RtnValue NewValueBigIntFromWords(IsolatePtr iso,
         rtn.error = ExceptionError(try_catch, iso, local_ctx);
         return rtn;
     }
+
     m_value *val = new m_value;
     val->iso = iso;
     val->ctx = ctx;
@@ -980,22 +982,22 @@ uint32_t ValueToUint32(ValuePtr ptr) {
     return value->Uint32Value(local_ctx).ToChecked();
 }
 
-size_t GetArrayBufferViewByteLen(ValuePtr ptr){
+size_t GetArrayBufferViewByteLen(ValuePtr ptr) {
     LOCAL_VALUE(ptr);
-    if (!value->IsArrayBufferView()){
+    if (!value->IsArrayBufferView()) {
         return 0;
     }
-    ArrayBufferView* bufferView=ArrayBufferView::Cast(value.operator->());
+    ArrayBufferView *bufferView = ArrayBufferView::Cast(value.operator->());
     return bufferView->ByteLength();
 }
 
-size_t  CopyArrayBufferViewContent(ValuePtr ptr,void* dest){
+size_t CopyArrayBufferViewContent(ValuePtr ptr, void *dest) {
     LOCAL_VALUE(ptr);
-    if (!value->IsArrayBufferView()){
+    if (!value->IsArrayBufferView()) {
         return 0;
     }
-    ArrayBufferView* bufferView=ArrayBufferView::Cast(value.operator->());
-    return bufferView->CopyContents(dest,bufferView->ByteLength());
+    ArrayBufferView *bufferView = ArrayBufferView::Cast(value.operator->());
+    return bufferView->CopyContents(dest, bufferView->ByteLength());
 }
 
 ValueBigInt ValueToBigInt(ValuePtr ptr) {
@@ -1672,12 +1674,25 @@ void BindMessageSendFuncToClient(RawInspectorClientPtr clientPtr) {
 void BindTickFuncToClient(RawInspectorClientPtr clientPtr) {
     bindTickFuncToClient(clientPtr, goTickFuncEntry);
 }
+
 void OnReceiveMessage(RawInspectorClientPtr clientPtr, char *Message) {
     onReceiveMessage(clientPtr, Message);
 }
-void freeAny(void* p){
+
+void freeV8GoPtr(void *p) {
     free(p);
 }
 
+void deleteRecordValuePtr(ValuePtr p) {
+    if (p == 0) {
+        return;
+    }
+    m_ctx *ctx = p->ctx;
+    auto v = std::find(ctx->vals.begin(), ctx->vals.end(), p);
+    if (v.operator->() != nullptr) {
+        ctx->vals.erase(v);
+        delete p;
+    }
+}
 }
 #endif

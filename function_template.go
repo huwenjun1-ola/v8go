@@ -85,13 +85,13 @@ func goFunctionCallback(ctxref int, cbref int, thisAndArgs *C.ValuePtr, argsCoun
 	this := *thisAndArgs
 	info := &FunctionCallbackInfo{
 		ctx:  ctx,
-		this: &Object{&Value{ptr: this, ctx: ctx}},
+		this: &Object{NewValueStruct(this, ctx)},
 		args: make([]*Value, argsCount),
 	}
 
 	argv := (*[1 << 30]C.ValuePtr)(unsafe.Pointer(thisAndArgs))[1 : argsCount+1 : argsCount+1]
 	for i, v := range argv {
-		val := &Value{ptr: v, ctx: ctx}
+		val := NewValueStruct(v, ctx)
 		info.args[i] = val
 	}
 

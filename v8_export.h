@@ -8,7 +8,7 @@
 #ifdef _WINDOWS
 #define V8GO_EXPORT __declspec(dllexport)
 #else
-#define V8GO_EXPORT 
+#define V8GO_EXPORT
 #endif
 
 #ifdef __cplusplus
@@ -139,7 +139,9 @@ typedef struct {
 } ValueBigInt;
 
 
-extern V8GO_EXPORT void InitV8Go(m_ctx *(*getGoContextFuncEntry)(int), ValuePtr (*goFunctionCallbackEntry)(int, int, ValuePtr *, int),void (*goTickFuncEntry)(int32_t), void (*goSendMessageFuncEntry)(int32_t, const char *));
+extern V8GO_EXPORT void
+InitV8Go(m_ctx *(*getGoContextFuncEntry)(int), ValuePtr (*goFunctionCallbackEntry)(int, int, ValuePtr *, int),
+         void (*goTickFuncEntry)(int32_t), void (*goSendMessageFuncEntry)(int32_t, const char *));
 extern V8GO_EXPORT void Init();
 
 extern V8GO_EXPORT IsolatePtr NewIsolate();
@@ -448,7 +450,10 @@ extern V8GO_EXPORT void BindTickFuncToClient(RawInspectorClientPtr clientPtr);
 
 extern V8GO_EXPORT void OnReceiveMessage(RawInspectorClientPtr clientPtr, char *Message);
 
-extern V8GO_EXPORT void freeAny(void* p);
+extern V8GO_EXPORT void freeV8GoPtr(void *p);
+
+extern V8GO_EXPORT void deleteRecordValuePtr(ValuePtr p);
+
 #ifdef __cplusplus
 }  // extern V8GO_EXPORT "C"
 #endif
