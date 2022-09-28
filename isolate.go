@@ -30,6 +30,7 @@ type Isolate struct {
 
 	templateLock sync.Mutex
 	templates    []ITemplate
+	InternalCtx  *Context
 }
 
 // HeapStatistics represents V8 isolate heap statistics
@@ -63,6 +64,14 @@ func NewIsolate() *Isolate {
 		ptr: C.NewIsolate(),
 		cbs: make(map[int]FunctionCallback),
 	}
+	contextPtr := C.getDefaultContext(iso.ptr)
+	ctx := &Context{
+		ref: -1,
+		ptr: contextPtr,
+		iso: iso,
+	}
+	ctx.register()
+	iso.InternalCtx = ctx
 	iso.null = newValueNull(iso)
 	iso.undefined = newValueUndefined(iso)
 	return iso
@@ -147,6 +156,7 @@ func (i *Isolate) GetHeapStatistics() HeapStatistics {
 
 // Dispose will dispose the Isolate VM; subsequent calls will panic.
 func (i *Isolate) Dispose() {
+	i.InternalCtx.stopped = true
 	if i.ptr == nil {
 		return
 	}

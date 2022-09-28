@@ -27,9 +27,10 @@ var ctxSeq = 0
 // Context is a global root execution environment that allows separate,
 // unrelated, JavaScript applications to run in a single instance of V8.
 type Context struct {
-	ref int
-	ptr C.ContextPtr
-	iso *Isolate
+	ref     int
+	ptr     C.ContextPtr
+	iso     *Isolate
+	stopped bool
 }
 
 type contextOptions struct {
@@ -116,6 +117,7 @@ func (c *Context) Close() {
 	c.deregister()
 	C.ContextFree(c.ptr)
 	c.ptr = nil
+	c.stopped = true
 }
 
 func (c *Context) StorageSize() int {

@@ -26,10 +26,16 @@ func NewValueStruct(valPtr C.ValuePtr, c *Context) (ret *Value) {
 	defer func() {
 		runtime.SetFinalizer(ret, ReleaseValuePtrInC)
 	}()
-	return &Value{
-		ptr: valPtr,
-		ctx: c,
+	targetC := c
+	if targetC == nil {
+		ref := int(C.getCtxRefByValuePtr(valPtr))
+		targetC = getContext(ref)
 	}
+	v := &Value{
+		ptr: valPtr,
+		ctx: targetC,
+	}
+	return v
 }
 
 // Valuer is an interface that reperesents anything that extends from a Value
@@ -61,6 +67,10 @@ func Null(iso *Isolate) *Value {
 }
 
 func ReleaseValuePtrInC(value *Value) {
+	if value.ctx != nil && value.ctx.stopped {
+		fmt.Println("wild pointer")
+		return
+	}
 	C.deleteRecordValuePtr(value.ptr)
 }
 

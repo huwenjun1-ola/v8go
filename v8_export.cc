@@ -34,6 +34,7 @@ struct m_ctx {
     std::vector<m_value *> vals;
     std::vector<m_unboundScript *> unboundScripts;
     Persistent<Context> ptr;
+    int ref;
 };
 
 struct m_value {
@@ -177,10 +178,12 @@ IsolatePtr NewIsolate() {
 
     // Create a Context for internal use
     m_ctx *ctx = new m_ctx;
-    ctx->ptr.Reset(iso, Context::New(iso));
+    ctx->ref = -1;
+    const Local<Context> &local = Context::New(iso);
+    local->SetEmbedderData(1, Integer::New(iso, -1));
+    ctx->ptr.Reset(iso, local);
     ctx->iso = iso;
     iso->SetData(0, ctx);
-
     return iso;
 }
 
@@ -603,8 +606,8 @@ ContextPtr NewContext(IsolatePtr iso,
     // has special meaning for the Chrome debugger.
     Local<Context> local_ctx = Context::New(iso, nullptr, global_template);
     local_ctx->SetEmbedderData(1, Integer::New(iso, ref));
-
     m_ctx *ctx = new m_ctx;
+    ctx->ref = ref;
     ctx->ptr.Reset(iso, local_ctx);
     ctx->iso = iso;
     return ctx;
@@ -615,7 +618,6 @@ void ContextFree(ContextPtr ctx) {
         return;
     }
     ctx->ptr.Reset();
-
     for (m_value *val: ctx->vals) {
         val->ptr.Reset();
         delete val;
@@ -1688,19 +1690,37 @@ void deleteRecordValuePtr(ValuePtr p) {
         return;
     }
     m_ctx *ctx = p->ctx;
+    if (ctx==0){
+        return;
+    }
     p->ptr.Reset();
+    if(ctx->vals.empty()){
+        return;
+    }
     auto v = std::find(ctx->vals.begin(), ctx->vals.end(), p);
     if (v.operator->() != nullptr) {
         ctx->vals.erase(v);
         delete p;
     }
 }
-
+int getCtxRefByValuePtr(ValuePtr v){
+    if(v==0){
+        return -1;
+    }
+    if(v->ctx==0){
+        return -1;
+    }
+    return v->ctx->ref;
+}
 int getCtxStorageSize(ContextPtr ctx){
     if (ctx == 0) {
         return 0;
     }
     return ctx->vals.size();
+}
+ContextPtr getDefaultContext(IsolatePtr iso_ptr){
+    ISOLATE_SCOPE_INTERNAL_CONTEXT(iso_ptr);
+    return ctx;
 }
 
 }
