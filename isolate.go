@@ -97,7 +97,7 @@ func (i *Isolate) TryReleaseValuePtrInC(lock bool) {
 	runtime.KeepAlive(valuePointers)
 	i.canReleasedValuePtrMap = map[C.ValuePtr]interface{}{}
 	if TraceMem {
-		fmt.Println("Real Released Cnt,Trace Not Released", i.GetTracedValueCnt())
+		fmt.Println("Real Released Cnt ", l, ",Traced Not Released", i.GetTracedValueCnt())
 	}
 }
 
