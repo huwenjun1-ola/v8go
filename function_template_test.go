@@ -54,7 +54,7 @@ func TestFunctionTemplateGetFunction(t *testing.T) {
 
 	iso := v8.NewIsolate()
 	defer iso.Dispose()
-	ctx := v8.NewContext(iso)
+	ctx := v8.NewContextWithOptions(iso)
 	defer ctx.Close()
 
 	var args *v8.FunctionCallbackInfo
@@ -99,7 +99,7 @@ func TestFunctionCallbackInfoThis(t *testing.T) {
 	global := v8.NewObjectTemplate(iso)
 	global.Set("foo", foo)
 
-	ctx := v8.NewContext(iso, global)
+	ctx := v8.NewContextWithOptions(iso, global)
 	defer ctx.Close()
 	ctx.RunScript("foo.bar()", "")
 
@@ -118,7 +118,7 @@ func ExampleFunctionTemplate() {
 		return nil
 	})
 	global.Set("print", printfn, v8.ReadOnly)
-	ctx := v8.NewContext(iso, global)
+	ctx := v8.NewContextWithOptions(iso, global)
 	defer ctx.Close()
 	ctx.RunScript("print('foo', 'bar', 0, 1)", "")
 	// Output:

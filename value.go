@@ -29,6 +29,9 @@ func NewValueStruct(valPtr C.ValuePtr, c *Isolate) (ret *Value) {
 	if c != nil {
 		c.TraceValuePtr(valPtr)
 	}
+	if TraceMem {
+		fmt.Println("New Value")
+	}
 	v := &Value{
 		ptr: valPtr,
 		ISO: c,

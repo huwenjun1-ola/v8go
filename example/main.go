@@ -10,7 +10,7 @@ func main() {
 
 	//for i := 0; i < 10000; i++ {
 	iso := v8go.NewIsolate()
-	ctx := v8go.NewContext(iso)
+	ctx := v8go.NewContextWithOptions(iso)
 	_, err := ctx.RunScript("var x=new Uint8Array([1,3,4,5]);globalThis.x=x;", "test.js")
 	if err != nil {
 		panic(err)

@@ -13,7 +13,7 @@ import (
 func TestCPUProfileNode(t *testing.T) {
 	t.Parallel()
 
-	ctx := v8.NewContext(nil)
+	ctx := v8.NewContextWithOptions(nil)
 	iso := ctx.Isolate()
 	defer iso.Dispose()
 	defer ctx.Close()

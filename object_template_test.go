@@ -113,7 +113,7 @@ func TestGlobalObjectTemplate(t *testing.T) {
 	for _, tt := range tests {
 		tt := tt
 		t.Run(tt.source, func(t *testing.T) {
-			ctx := v8.NewContext(iso, tt.global())
+			ctx := v8.NewContextWithOptions(iso, tt.global())
 			val, err := ctx.RunScript(tt.source, "test.js")
 			if err != nil {
 				t.Fatalf("unexpected error runing script: %v", err)
@@ -134,7 +134,7 @@ func TestObjectTemplateNewInstance(t *testing.T) {
 	}
 
 	tmpl.Set("foo", "bar")
-	ctx := v8.NewContext(iso)
+	ctx := v8.NewContextWithOptions(iso)
 	defer ctx.Close()
 	obj, _ := tmpl.NewInstance(ctx)
 	if foo, _ := obj.Get("foo"); foo.String() != "bar" {
@@ -149,7 +149,7 @@ func TestObjectTemplate_garbageCollection(t *testing.T) {
 
 	tmpl := v8.NewObjectTemplate(iso)
 	tmpl.Set("foo", "bar")
-	ctx := v8.NewContext(iso, tmpl)
+	ctx := v8.NewContextWithOptions(iso, tmpl)
 
 	ctx.Close()
 	iso.Dispose()

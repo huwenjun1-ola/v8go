@@ -24,12 +24,13 @@ var ctxMutex sync.RWMutex
 var ctxRegistry = make(map[int]*ctxRef)
 var ctxSeq = 0
 
-// Context is a global root execution environment that allows separate,
+// Context is a GlobalObject root execution environment that allows separate,
 // unrelated, JavaScript applications to run in a single instance of V8.
 type Context struct {
-	ref int
-	ptr C.ContextPtr
-	iso *Isolate
+	ref          int
+	ptr          C.ContextPtr
+	iso          *Isolate
+	GlobalObject *Object
 }
 
 type contextOptions struct {
@@ -42,9 +43,9 @@ type ContextOption interface {
 	apply(*contextOptions)
 }
 
-// NewContext creates a new JavaScript context; if no Isolate is passed as a
+// NewContextWithOptions creates a new JavaScript context; if no Isolate is passed as a
 // ContextOption than a new Isolate will be created.
-func NewContext(opt ...ContextOption) *Context {
+func NewContextWithOptions(opt ...ContextOption) *Context {
 	opts := contextOptions{}
 	for _, o := range opt {
 		if o != nil {
@@ -63,11 +64,20 @@ func NewContext(opt ...ContextOption) *Context {
 	ctxSeq++
 	ref := ctxSeq
 	ctxMutex.Unlock()
+	ptr := C.NewContext(opts.iso.ptr, opts.gTmpl.ptr, C.int(ref))
+	ctx := NewContext(ref, ptr, opts.iso)
+	return ctx
+}
+
+func NewContext(ref int, ptr C.ContextPtr, iso *Isolate) *Context {
 	ctx := &Context{
 		ref: ref,
-		ptr: C.NewContext(opts.iso.ptr, opts.gTmpl.ptr, C.int(ref)),
-		iso: opts.iso,
+		ptr: ptr,
+		iso: iso,
 	}
+	valPtr := C.ContextGlobal(ctx.ptr)
+	v := NewValueStruct(valPtr, ctx.iso)
+	ctx.GlobalObject = &Object{v}
 	ctx.register()
 	return ctx
 }
@@ -91,17 +101,15 @@ func (c *Context) RunScript(source string, origin string) (*Value, error) {
 	return valueResult(c.iso, rtn)
 }
 
-// Global returns the global proxy object.
+// Global returns the GlobalObject proxy object.
 // Global proxy object is a thin wrapper whose prototype points to actual
-// context's global object with the properties like Object, etc. This is
+// context's GlobalObject object with the properties like Object, etc. This is
 // done that way for security reasons.
-// Please note that changes to global proxy object prototype most probably
-// would break the VM — V8 expects only global object as a prototype of
-// global proxy object.
+// Please note that changes to GlobalObject proxy object prototype most probably
+// would break the VM — V8 expects only GlobalObject object as a prototype of
+// GlobalObject proxy object.
 func (c *Context) Global() *Object {
-	valPtr := C.ContextGlobal(c.ptr)
-	v := NewValueStruct(valPtr, c.iso)
-	return &Object{v}
+	return c.GlobalObject
 }
 
 // PerformMicrotaskCheckpoint runs the default MicrotaskQueue until empty.

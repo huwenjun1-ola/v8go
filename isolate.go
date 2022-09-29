@@ -9,6 +9,7 @@ package v8go
 import "C"
 
 import (
+	"fmt"
 	"runtime"
 	"sync"
 	"unsafe"
@@ -72,6 +73,9 @@ func (i *Isolate) MoveTracedPtrToCanReleaseMap(ptr C.ValuePtr, lock bool) {
 	}
 	delete(i.tracedValuePtrMap, ptr)
 	i.canReleasedValuePtrMap[ptr] = struct{}{}
+	if TraceMem {
+		fmt.Println("MoveTracedPtrToCanReleaseMap,Can Release Map Size", len(i.canReleasedValuePtrMap), "Still Tracing Size", len(i.tracedValuePtrMap))
+	}
 }
 
 func (i *Isolate) TryReleaseValuePtrInC(lock bool) {
@@ -92,6 +96,9 @@ func (i *Isolate) TryReleaseValuePtrInC(lock bool) {
 	C.batchDeleteRecordValuePtr(&valuePointers[0], C.int(len(valuePointers)))
 	runtime.KeepAlive(valuePointers)
 	i.canReleasedValuePtrMap = map[C.ValuePtr]interface{}{}
+	if TraceMem {
+		fmt.Println("Real Released Cnt,Trace Not Released", i.GetTracedValueCnt())
+	}
 }
 
 func (i *Isolate) releaseTracedValuePtrInC(lock bool) {
@@ -177,12 +184,7 @@ func NewIsolate() *Isolate {
 		tracedUnboundScriptPtrMap: map[C.UnboundScriptPtr]interface{}{},
 	}
 	contextPtr := C.getDefaultContext(iso.ptr)
-	ctx := &Context{
-		ref: ref,
-		ptr: contextPtr,
-		iso: iso,
-	}
-	ctx.register()
+	ctx := NewContext(ref, contextPtr, iso)
 	iso.InternalCtx = ctx
 	iso.null = newValueNull(iso)
 	iso.undefined = newValueUndefined(iso)

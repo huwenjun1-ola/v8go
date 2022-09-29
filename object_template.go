@@ -35,7 +35,7 @@ type ObjectTemplate struct {
 }
 
 // NewObjectTemplate creates a new ObjectTemplate.
-// The *ObjectTemplate can be used as a v8go.ContextOption to create a global object in a Context.
+// The *ObjectTemplate can be used as a v8go.ContextOption to create a GlobalObject object in a Context.
 func NewObjectTemplate(iso *Isolate) *ObjectTemplate {
 	if iso == nil {
 		panic("nil Isolate argument not supported")

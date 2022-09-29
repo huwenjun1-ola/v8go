@@ -40,7 +40,7 @@ func ExampleFunctionTemplate_fetch() {
 	})
 	global.Set("fetch", fetchfn, v8.ReadOnly)
 
-	ctx := v8.NewContext(iso, global)
+	ctx := v8.NewContextWithOptions(iso, global)
 	defer ctx.Close()
 	val, _ := ctx.RunScript("fetch('https://rogchap.com/v8go')", "")
 	prom, _ := val.AsPromise()

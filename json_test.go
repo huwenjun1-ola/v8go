@@ -17,7 +17,7 @@ func TestJSONParse(t *testing.T) {
 	if _, err := v8.JSONParse(nil, "{}"); err == nil {
 		t.Error("expected error but got <nil>")
 	}
-	ctx := v8.NewContext()
+	ctx := v8.NewContextWithOptions()
 	defer ctx.Isolate().Dispose()
 	defer ctx.Close()
 	_, err := v8.JSONParse(ctx, "{")
@@ -34,7 +34,7 @@ func TestJSONParse(t *testing.T) {
 func TestJSONStringify(t *testing.T) {
 	t.Parallel()
 
-	ctx := v8.NewContext()
+	ctx := v8.NewContextWithOptions()
 	defer ctx.Isolate().Dispose()
 	defer ctx.Close()
 	if _, err := v8.JSONStringify(ctx, nil); err == nil {
@@ -43,7 +43,7 @@ func TestJSONStringify(t *testing.T) {
 }
 
 func ExampleJSONParse() {
-	ctx := v8.NewContext()
+	ctx := v8.NewContextWithOptions()
 	defer ctx.Isolate().Dispose()
 	defer ctx.Close()
 	val, _ := v8.JSONParse(ctx, `{"foo": "bar"}`)
@@ -53,7 +53,7 @@ func ExampleJSONParse() {
 }
 
 func ExampleJSONStringify() {
-	ctx := v8.NewContext()
+	ctx := v8.NewContextWithOptions()
 	defer ctx.Isolate().Dispose()
 	defer ctx.Close()
 	val, _ := v8.JSONParse(ctx, `{

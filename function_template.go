@@ -8,6 +8,7 @@ package v8go
 // #include "v8go.h"
 import "C"
 import (
+	"fmt"
 	"time"
 	"unsafe"
 )
@@ -92,6 +93,9 @@ func goFunctionCallback(ctxref int, cbref int, thisAndArgs *C.ValuePtr, argsCoun
 		bt := make([]*Value, 0)
 		bt = append(bt, info.this.Value)
 		bt = append(bt, info.args...)
+		if TraceMem {
+			fmt.Println("Mark Can Be Released By Func Call This And Args,Len ", len(bt))
+		}
 		ctx.iso.BatchMarkCanReleaseInC(bt...)
 	}()
 	argv := (*[1 << 30]C.ValuePtr)(unsafe.Pointer(thisAndArgs))[1 : argsCount+1 : argsCount+1]

@@ -18,7 +18,7 @@ func TestUnboundScriptRun_OnlyInTheSameIsolate(t *testing.T) {
 	us, err := i1.CompileUnboundScript(str, "script.js", v8.CompileOptions{})
 	fatalIf(t, err)
 
-	c1 := v8.NewContext(i1)
+	c1 := v8.NewContextWithOptions(i1)
 	defer c1.Close()
 
 	val, err := us.Run(c1)
@@ -27,7 +27,7 @@ func TestUnboundScriptRun_OnlyInTheSameIsolate(t *testing.T) {
 		t.Fatalf("invalid value returned, expected bar got %v", val)
 	}
 
-	c2 := v8.NewContext(i1)
+	c2 := v8.NewContextWithOptions(i1)
 	defer c2.Close()
 
 	val, err = us.Run(c2)
@@ -38,7 +38,7 @@ func TestUnboundScriptRun_OnlyInTheSameIsolate(t *testing.T) {
 
 	i2 := v8.NewIsolate()
 	defer i2.Dispose()
-	i2c1 := v8.NewContext(i2)
+	i2c1 := v8.NewContextWithOptions(i2)
 	defer i2c1.Close()
 
 	if recoverPanic(func() { us.Run(i2c1) }) == nil {

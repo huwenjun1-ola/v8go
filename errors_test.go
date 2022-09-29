@@ -47,7 +47,7 @@ func TestJSErrorFormat(t *testing.T) {
 
 func TestJSErrorOutput(t *testing.T) {
 	t.Parallel()
-	ctx := v8.NewContext(nil)
+	ctx := v8.NewContextWithOptions(nil)
 	defer ctx.Isolate().Dispose()
 	defer ctx.Close()
 
@@ -95,7 +95,7 @@ func TestJSErrorFormat_forSyntaxError(t *testing.T) {
 	t.Parallel()
 	iso := v8.NewIsolate()
 	defer iso.Dispose()
-	ctx := v8.NewContext(iso)
+	ctx := v8.NewContextWithOptions(iso)
 	defer ctx.Close()
 
 	script := `

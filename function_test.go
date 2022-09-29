@@ -13,7 +13,7 @@ import (
 func TestFunctionCall(t *testing.T) {
 	t.Parallel()
 
-	ctx := v8.NewContext()
+	ctx := v8.NewContextWithOptions()
 	iso := ctx.Isolate()
 	defer iso.Dispose()
 	defer ctx.Close()
@@ -51,7 +51,7 @@ func TestFunctionCallToGoFunc(t *testing.T) {
 	err := global.Set("print", printfn, v8.ReadOnly)
 	fatalIf(t, err)
 
-	ctx := v8.NewContext(iso, global)
+	ctx := v8.NewContextWithOptions(iso, global)
 	defer ctx.Close()
 
 	val, err := ctx.RunScript(`(a, b) => { print("foo"); }`, "")
@@ -76,7 +76,7 @@ func TestFunctionCallWithObjectReceiver(t *testing.T) {
 	defer iso.Dispose()
 	global := v8.NewObjectTemplate(iso)
 
-	ctx := v8.NewContext(iso, global)
+	ctx := v8.NewContextWithOptions(iso, global)
 	defer ctx.Close()
 	val, err := ctx.RunScript(`class Obj { constructor(input) { this.input = input } print() { return this.input.toString() } }; new Obj("some val")`, "")
 	fatalIf(t, err)
@@ -97,7 +97,7 @@ func TestFunctionCallWithObjectReceiver(t *testing.T) {
 func TestFunctionCallError(t *testing.T) {
 	t.Parallel()
 
-	ctx := v8.NewContext()
+	ctx := v8.NewContextWithOptions()
 	iso := ctx.Isolate()
 	defer iso.Dispose()
 	defer ctx.Close()
@@ -122,7 +122,7 @@ func TestFunctionCallError(t *testing.T) {
 func TestFunctionSourceMapUrl(t *testing.T) {
 	t.Parallel()
 
-	ctx := v8.NewContext()
+	ctx := v8.NewContextWithOptions()
 	defer ctx.Isolate().Dispose()
 	defer ctx.Close()
 	_, err := ctx.RunScript("function add(a, b) { return a + b; }; //# sourceMappingURL=main.js.map", "main.js")
@@ -152,7 +152,7 @@ func TestFunctionSourceMapUrl(t *testing.T) {
 func TestFunctionNewInstance(t *testing.T) {
 	t.Parallel()
 
-	ctx := v8.NewContext()
+	ctx := v8.NewContextWithOptions()
 	defer ctx.Isolate().Dispose()
 	defer ctx.Close()
 
@@ -182,7 +182,7 @@ func TestFunctionNewInstance(t *testing.T) {
 func TestFunctionNewInstanceError(t *testing.T) {
 	t.Parallel()
 
-	ctx := v8.NewContext()
+	ctx := v8.NewContextWithOptions()
 	defer ctx.Isolate().Dispose()
 	defer ctx.Close()
 

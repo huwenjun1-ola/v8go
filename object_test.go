@@ -14,7 +14,7 @@ import (
 func TestObjectMethodCall(t *testing.T) {
 	t.Parallel()
 
-	ctx := v8.NewContext()
+	ctx := v8.NewContextWithOptions()
 	iso := ctx.Isolate()
 	defer iso.Dispose()
 	defer ctx.Close()
@@ -48,7 +48,7 @@ func TestObjectMethodCall(t *testing.T) {
 func TestObjectSet(t *testing.T) {
 	t.Parallel()
 
-	ctx := v8.NewContext()
+	ctx := v8.NewContextWithOptions()
 	defer ctx.Isolate().Dispose()
 	defer ctx.Close()
 	val, _ := ctx.RunScript("const foo = {}; foo", "")
@@ -78,7 +78,7 @@ func TestObjectSet(t *testing.T) {
 func TestObjectInternalFields(t *testing.T) {
 	iso := v8.NewIsolate()
 	defer iso.Dispose()
-	ctx := v8.NewContext(iso)
+	ctx := v8.NewContextWithOptions(iso)
 	defer ctx.Close()
 
 	tmpl := v8.NewObjectTemplate(iso)
@@ -125,7 +125,7 @@ func TestObjectInternalFields(t *testing.T) {
 func TestObjectGet(t *testing.T) {
 	t.Parallel()
 
-	ctx := v8.NewContext()
+	ctx := v8.NewContextWithOptions()
 	defer ctx.Isolate().Dispose()
 	defer ctx.Close()
 	val, _ := ctx.RunScript("const foo = { bar: 'baz'}; foo", "")
@@ -148,7 +148,7 @@ func TestObjectGet(t *testing.T) {
 func TestObjectHas(t *testing.T) {
 	t.Parallel()
 
-	ctx := v8.NewContext()
+	ctx := v8.NewContextWithOptions()
 	defer ctx.Isolate().Dispose()
 	defer ctx.Close()
 	val, _ := ctx.RunScript("const foo = {a: 1, '2': 2}; foo", "")
@@ -170,7 +170,7 @@ func TestObjectHas(t *testing.T) {
 func TestObjectDelete(t *testing.T) {
 	t.Parallel()
 
-	ctx := v8.NewContext()
+	ctx := v8.NewContextWithOptions()
 	defer ctx.Isolate().Dispose()
 	defer ctx.Close()
 	val, _ := ctx.RunScript("const foo = { bar: 'baz', '2': 2}; foo", "")
@@ -193,7 +193,7 @@ func TestObjectDelete(t *testing.T) {
 func ExampleObject_global() {
 	iso := v8.NewIsolate()
 	defer iso.Dispose()
-	ctx := v8.NewContext(iso)
+	ctx := v8.NewContextWithOptions(iso)
 	defer ctx.Close()
 	global := ctx.Global()
 

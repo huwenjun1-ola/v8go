@@ -38,7 +38,7 @@ func TestIsolateTerminateExecution(t *testing.T) {
 	global := v8.NewObjectTemplate(iso)
 	global.Set("foo", fooFn)
 
-	ctx := v8.NewContext(iso, global)
+	ctx := v8.NewContextWithOptions(iso, global)
 	defer ctx.Close()
 
 	script := `function loop() { while (true) { } }; foo(loop);`
@@ -57,7 +57,7 @@ func TestIsolateCompileUnboundScript(t *testing.T) {
 
 	i1 := v8.NewIsolate()
 	defer i1.Dispose()
-	c1 := v8.NewContext(i1)
+	c1 := v8.NewContextWithOptions(i1)
 	defer c1.Close()
 
 	_, err := i1.CompileUnboundScript("invalid js", "filename", v8.CompileOptions{})
@@ -78,7 +78,7 @@ func TestIsolateCompileUnboundScript(t *testing.T) {
 
 	i2 := v8.NewIsolate()
 	defer i2.Dispose()
-	c2 := v8.NewContext(i2)
+	c2 := v8.NewContextWithOptions(i2)
 	defer c2.Close()
 
 	opts := v8.CompileOptions{CachedData: cachedData}
@@ -111,7 +111,7 @@ func TestIsolateCompileUnboundScript_CachedDataRejected(t *testing.T) {
 		t.Error("expected cached data to be rejected")
 	}
 
-	ctx := v8.NewContext(iso)
+	ctx := v8.NewContextWithOptions(iso)
 	defer ctx.Close()
 
 	// Verify that unbound script is still compiled and able to be used
@@ -143,9 +143,9 @@ func TestIsolateGetHeapStatistics(t *testing.T) {
 	t.Parallel()
 	iso := v8.NewIsolate()
 	defer iso.Dispose()
-	ctx1 := v8.NewContext(iso)
+	ctx1 := v8.NewContextWithOptions(iso)
 	defer ctx1.Close()
-	ctx2 := v8.NewContext(iso)
+	ctx2 := v8.NewContextWithOptions(iso)
 	defer ctx2.Close()
 
 	hs := iso.GetHeapStatistics()
@@ -234,7 +234,7 @@ func TestIsolateThrowException(t *testing.T) {
 	global.Set("foo", fn)
 	global.Set("foo2", fn2)
 
-	ctx := v8.NewContext(iso, global)
+	ctx := v8.NewContextWithOptions(iso, global)
 
 	_, e := ctx.RunScript("foo()", "foo.js")
 
@@ -267,7 +267,7 @@ func BenchmarkIsolateInitAndRun(b *testing.B) {
 	b.ReportAllocs()
 	for n := 0; n < b.N; n++ {
 		vm := v8.NewIsolate()
-		ctx := v8.NewContext(vm)
+		ctx := v8.NewContextWithOptions(vm)
 		ctx.RunScript(script, "main.js")
 		str, _ := json.Marshal(makeObject())
 		cmd := fmt.Sprintf("process(%s)", str)

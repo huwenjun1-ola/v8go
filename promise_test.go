@@ -15,7 +15,7 @@ func TestPromiseFulfilled(t *testing.T) {
 
 	iso := v8.NewIsolate()
 	defer iso.Dispose()
-	ctx := v8.NewContext(iso)
+	ctx := v8.NewContextWithOptions(iso)
 	defer ctx.Close()
 
 	if _, err := v8.NewPromiseResolver(nil); err == nil {
@@ -65,7 +65,7 @@ func TestPromiseRejected(t *testing.T) {
 
 	iso := v8.NewIsolate()
 	defer iso.Dispose()
-	ctx := v8.NewContext(iso)
+	ctx := v8.NewContextWithOptions(iso)
 	defer ctx.Close()
 
 	res2, _ := v8.NewPromiseResolver(ctx)
@@ -115,7 +115,7 @@ func TestPromiseThenPanic(t *testing.T) {
 
 	iso := v8.NewIsolate()
 	defer iso.Dispose()
-	ctx := v8.NewContext(iso)
+	ctx := v8.NewContextWithOptions(iso)
 	defer ctx.Close()
 
 	res, _ := v8.NewPromiseResolver(ctx)
