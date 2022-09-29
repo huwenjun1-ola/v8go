@@ -13,6 +13,7 @@ import (
 	"io"
 	"math/big"
 	"runtime"
+	"sync"
 	"unsafe"
 )
 
@@ -36,6 +37,17 @@ func NewValueStruct(valPtr C.ValuePtr, c *Context) (ret *Value) {
 		ctx: targetC,
 	}
 	return v
+}
+
+func (v *Value) MarkRelease() {
+	Lock.Lock()
+	defer Lock.Unlock()
+	runtime.SetFinalizer(v, nil)
+	_, ex := GlobalValuePtrMap[v.ptr]
+	if ex {
+		return
+	}
+	GlobalValuePtrMap[v.ptr] = struct{}{}
 }
 
 // Valuer is an interface that reperesents anything that extends from a Value
@@ -66,11 +78,30 @@ func Null(iso *Isolate) *Value {
 	return iso.null
 }
 
+var Lock sync.Mutex
+var GlobalValuePtrMap = map[C.ValuePtr]interface{}{}
+
 func ReleaseValuePtrInC(value *Value) {
 	if value.ctx != nil && value.ctx.stopped {
 		return
 	}
-	C.deleteRecordValuePtr(value.ptr)
+	Lock.Lock()
+	defer Lock.Unlock()
+	GlobalValuePtrMap[value.ptr] = struct{}{}
+}
+
+func DoRelease() {
+	Lock.Lock()
+	defer Lock.Unlock()
+	//l := len(GlobalValuePtrMap)
+	//if l > 0 {
+	//	fmt.Println(l)
+	//}
+
+	for ptr, _ := range GlobalValuePtrMap {
+		C.deleteRecordValuePtr(ptr)
+		delete(GlobalValuePtrMap, ptr)
+	}
 }
 
 // NewValue will create a primitive value. Supported values types to create are:

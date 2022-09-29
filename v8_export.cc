@@ -62,7 +62,7 @@ const char *CopyString(std::string str) {
 
 const char *CopyString(String::Utf8Value &value) {
     if (value.length() == 0) {
-        return nullptr;
+        return 0;
     }
     return CopyString(*value);
 }
@@ -72,7 +72,7 @@ RtnError ExceptionError(TryCatch &try_catch, Isolate *iso, Local<Context> ctx) {
     Isolate::Scope isolate_scope(iso);
     HandleScope handle_scope(iso);
 
-    RtnError rtn = {nullptr, nullptr, nullptr};
+    RtnError rtn = {0, 0, 0};
 
     if (try_catch.HasTerminated()) {
         rtn.msg =
@@ -197,7 +197,7 @@ void IsolatePerformMicrotaskCheckpoint(IsolatePtr iso) {
 }
 
 void IsolateDispose(IsolatePtr iso) {
-    if (iso == nullptr) {
+    if (iso == 0) {
         return;
     }
     ContextFree(isolateInternalContext(iso));
@@ -214,7 +214,7 @@ int IsolateIsExecutionTerminating(IsolatePtr iso) {
 }
 
 IsolateHStatistics IsolationGetHeapStatistics(IsolatePtr iso) {
-    if (iso == nullptr) {
+    if (iso == 0) {
         return IsolateHStatistics{0};
     }
     v8::HeapStatistics hs;
@@ -252,7 +252,7 @@ RtnUnboundScript IsolateCompileUnboundScript(IsolatePtr iso,
     ScriptCompiler::CompileOptions option =
             static_cast<ScriptCompiler::CompileOptions>(opts.compileOption);
 
-    ScriptCompiler::CachedData *cached_data = nullptr;
+    ScriptCompiler::CachedData *cached_data = 0;
 
     if (opts.cachedData.data) {
         cached_data = new ScriptCompiler::CachedData(opts.cachedData.data,
@@ -312,7 +312,7 @@ CPUProfiler *NewCPUProfiler(IsolatePtr iso_ptr) {
 }
 
 void CPUProfilerDispose(CPUProfiler *profiler) {
-    if (profiler->ptr == nullptr) {
+    if (profiler->ptr == 0) {
         return;
     }
     profiler->ptr->Dispose();
@@ -321,7 +321,7 @@ void CPUProfilerDispose(CPUProfiler *profiler) {
 }
 
 void CPUProfilerStartProfiling(CPUProfiler *profiler, const char *title) {
-    if (profiler->iso == nullptr) {
+    if (profiler->iso == 0) {
         return;
     }
 
@@ -355,8 +355,8 @@ CPUProfileNode *NewCPUProfileNode(const CpuProfileNode *ptr_) {
 }
 
 CPUProfile *CPUProfilerStopProfiling(CPUProfiler *profiler, const char *title) {
-    if (profiler->iso == nullptr) {
-        return nullptr;
+    if (profiler->iso == 0) {
+        return 0;
     }
 
     Locker locker(profiler->iso);
@@ -393,7 +393,7 @@ void CPUProfileNodeDelete(CPUProfileNode *node) {
 }
 
 void CPUProfileDelete(CPUProfile *profile) {
-    if (profile->ptr == nullptr) {
+    if (profile->ptr == 0) {
         return;
     }
     profile->ptr->Delete();
@@ -526,7 +526,7 @@ static void FunctionTemplateCallback(const FunctionCallbackInfo<Value> &info) {
 
     ValuePtr val =
             goFunctionCallbackEntry(ctx_ref, callback_ref, thisAndArgs, args_count);
-    if (val != nullptr) {
+    if (val != 0) {
         info.GetReturnValue().Set(val->ptr.Get(iso));
     } else {
         info.GetReturnValue().SetUndefined();
@@ -593,7 +593,7 @@ ContextPtr NewContext(IsolatePtr iso,
     HandleScope handle_scope(iso);
 
     Local<ObjectTemplate> global_template;
-    if (global_template_ptr != nullptr) {
+    if (global_template_ptr != 0) {
         global_template = global_template_ptr->ptr.Get(iso).As<ObjectTemplate>();
     } else {
         global_template = ObjectTemplate::New(iso);
@@ -604,7 +604,7 @@ ContextPtr NewContext(IsolatePtr iso,
     // context as a simple integer identifier; this can then be used on the Go
     // side to lookup the context in the context registry. We use slot 1 as slot 0
     // has special meaning for the Chrome debugger.
-    Local<Context> local_ctx = Context::New(iso, nullptr, global_template);
+    Local<Context> local_ctx = Context::New(iso, 0, global_template);
     local_ctx->SetEmbedderData(1, Integer::New(iso, ref));
     m_ctx *ctx = new m_ctx;
     ctx->ref = ref;
@@ -614,7 +614,7 @@ ContextPtr NewContext(IsolatePtr iso,
 }
 
 void ContextFree(ContextPtr ctx) {
-    if (ctx == nullptr) {
+    if (ctx == 0) {
         return;
     }
     ctx->ptr.Reset();
@@ -742,7 +742,7 @@ const char *JSONStringify(ContextPtr ctx, ValuePtr val) {
     Isolate *iso;
     Local<Context> local_ctx;
 
-    if (ctx != nullptr) {
+    if (ctx != 0) {
         iso = ctx->iso;
     } else {
         iso = val->iso;
@@ -752,10 +752,10 @@ const char *JSONStringify(ContextPtr ctx, ValuePtr val) {
     Isolate::Scope isolate_scope(iso);
     HandleScope handle_scope(iso);
 
-    if (ctx != nullptr) {
+    if (ctx != 0) {
         local_ctx = ctx->ptr.Get(iso);
     } else {
-        if (val->ctx != nullptr) {
+        if (val->ctx != 0) {
             local_ctx = val->ctx->ptr.Get(iso);
         } else {
             m_ctx *ctx = isolateInternalContext(iso);
@@ -767,7 +767,7 @@ const char *JSONStringify(ContextPtr ctx, ValuePtr val) {
 
     Local<String> str;
     if (!JSON::Stringify(local_ctx, val->ptr.Get(iso)).ToLocal(&str)) {
-        return nullptr;
+        return 0;
     }
     String::Utf8Value json(iso, str);
     return CopyString(json);
@@ -795,7 +795,7 @@ ValuePtr ContextGlobal(ContextPtr ctx) {
   TryCatch try_catch(iso);                 \
   m_ctx* ctx = val->ctx;                   \
   Local<Context> local_ctx;                \
-  if (ctx != nullptr) {                    \
+  if (ctx != 0) {                    \
     local_ctx = ctx->ptr.Get(iso);         \
   } else {                                 \
     ctx = isolateInternalContext(iso);     \
@@ -928,7 +928,7 @@ const uint32_t *ValueToArrayIndex(ValuePtr ptr) {
     LOCAL_VALUE(ptr);
     Local<Uint32> array_index;
     if (!value->ToArrayIndex(local_ctx).ToLocal(&array_index)) {
-        return nullptr;
+        return 0;
     }
 
     uint32_t *idx = (uint32_t *) malloc(sizeof(uint32_t));
@@ -1006,7 +1006,7 @@ ValueBigInt ValueToBigInt(ValuePtr ptr) {
     LOCAL_VALUE(ptr);
     Local<BigInt> bint;
     if (!value->ToBigInt(local_ctx).ToLocal(&bint)) {
-        return {nullptr, 0};
+        return {0, 0};
     }
 
     int word_count = bint->WordCount();
@@ -1385,7 +1385,7 @@ ValuePtr ObjectGetInternalField(ValuePtr ptr, int idx) {
     LOCAL_OBJECT(ptr);
 
     if (idx >= obj->InternalFieldCount()) {
-        return nullptr;
+        return 0;
     }
 
     Local<Value> result = obj->GetInternalField(idx);
@@ -1690,24 +1690,25 @@ void deleteRecordValuePtr(ValuePtr p) {
         return;
     }
     m_ctx *ctx = p->ctx;
-    if (ctx==0){
+    if (ctx == 0){
         return;
     }
-    p->ptr.Reset();
     if(ctx->vals.empty()){
         return;
     }
+    p->ptr.Reset();
     auto v = std::find(ctx->vals.begin(), ctx->vals.end(), p);
-    if (v.operator->() != nullptr) {
+    auto ret=*v;
+    if (ret != 0) {
         ctx->vals.erase(v);
         delete p;
     }
 }
 int getCtxRefByValuePtr(ValuePtr v){
-    if(v==0){
+    if(v == 0){
         return -1;
     }
-    if(v->ctx==0){
+    if(v->ctx == 0){
         return -1;
     }
     return v->ctx->ref;
