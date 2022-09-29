@@ -34,7 +34,7 @@ func TestCPUProfiler_Dispose(t *testing.T) {
 	defer cpuProfiler.Dispose()
 	iso.Dispose()
 
-	// verify panics when isolate disposed
+	// verify panics when ISO disposed
 	if recoverPanic(func() { cpuProfiler.StartProfiling("") }) == nil {
 		t.Error("expected panic")
 	}

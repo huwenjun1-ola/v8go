@@ -27,10 +27,9 @@ var ctxSeq = 0
 // Context is a global root execution environment that allows separate,
 // unrelated, JavaScript applications to run in a single instance of V8.
 type Context struct {
-	ref     int
-	ptr     C.ContextPtr
-	iso     *Isolate
-	stopped bool
+	ref int
+	ptr C.ContextPtr
+	iso *Isolate
 }
 
 type contextOptions struct {
@@ -89,7 +88,7 @@ func (c *Context) RunScript(source string, origin string) (*Value, error) {
 	defer FreeCPtr(unsafe.Pointer(cOrigin))
 
 	rtn := C.RunScript(c.ptr, cSource, cOrigin)
-	return valueResult(c, rtn)
+	return valueResult(c.iso, rtn)
 }
 
 // Global returns the global proxy object.
@@ -101,7 +100,7 @@ func (c *Context) RunScript(source string, origin string) (*Value, error) {
 // global proxy object.
 func (c *Context) Global() *Object {
 	valPtr := C.ContextGlobal(c.ptr)
-	v := NewValueStruct(valPtr, c)
+	v := NewValueStruct(valPtr, c.iso)
 	return &Object{v}
 }
 
@@ -117,11 +116,6 @@ func (c *Context) Close() {
 	c.deregister()
 	C.ContextFree(c.ptr)
 	c.ptr = nil
-	c.stopped = true
-}
-
-func (c *Context) StorageSize() int {
-	return int(C.getCtxStorageSize(c.ptr))
 }
 
 func (c *Context) register() {
@@ -164,14 +158,14 @@ func goContext(ref int) C.ContextPtr {
 	return ctx.ptr
 }
 
-func valueResult(ctx *Context, rtn C.RtnValue) (*Value, error) {
+func valueResult(ctx *Isolate, rtn C.RtnValue) (*Value, error) {
 	if rtn.value == nil {
 		return nil, newJSError(rtn.error)
 	}
 	return NewValueStruct(rtn.value, ctx), nil
 }
 
-func objectResult(ctx *Context, rtn C.RtnValue) (*Object, error) {
+func objectResult(ctx *Isolate, rtn C.RtnValue) (*Object, error) {
 	if rtn.value == nil {
 		return nil, newJSError(rtn.error)
 	}

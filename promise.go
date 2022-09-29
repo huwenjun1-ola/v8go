@@ -40,7 +40,7 @@ func NewPromiseResolver(ctx *Context) (*PromiseResolver, error) {
 		return nil, errors.New("v8go: Context is required")
 	}
 	rtn := C.NewPromiseResolver(ctx.ptr)
-	obj, err := objectResult(ctx, rtn)
+	obj, err := objectResult(ctx.iso, rtn)
 	if err != nil {
 		return nil, err
 	}
@@ -53,7 +53,7 @@ func NewPromiseResolver(ctx *Context) (*PromiseResolver, error) {
 func (r *PromiseResolver) GetPromise() *Promise {
 	if r.prom == nil {
 		ptr := C.PromiseResolverGetPromise(r.ptr)
-		val := NewValueStruct(ptr, r.ctx)
+		val := NewValueStruct(ptr, r.ISO)
 		r.prom = &Promise{&Object{val}}
 	}
 	return r.prom
@@ -81,7 +81,7 @@ func (p *Promise) State() PromiseState {
 // to validate state before calling for the result.
 func (p *Promise) Result() *Value {
 	ptr := C.PromiseResult(p.ptr)
-	val := NewValueStruct(ptr, p.ctx)
+	val := NewValueStruct(ptr, p.ISO)
 	return val
 }
 
@@ -97,17 +97,17 @@ func (p *Promise) Then(cbs ...FunctionCallback) *Promise {
 	var rtn C.RtnValue
 	switch len(cbs) {
 	case 1:
-		cbID := p.ctx.iso.registerCallback(cbs[0])
+		cbID := p.ISO.registerCallback(cbs[0])
 		rtn = C.PromiseThen(p.ptr, C.int(cbID))
 	case 2:
-		cbID1 := p.ctx.iso.registerCallback(cbs[0])
-		cbID2 := p.ctx.iso.registerCallback(cbs[1])
+		cbID1 := p.ISO.registerCallback(cbs[0])
+		cbID2 := p.ISO.registerCallback(cbs[1])
 		rtn = C.PromiseThen2(p.ptr, C.int(cbID1), C.int(cbID2))
 
 	default:
 		panic("1 or 2 callbacks required")
 	}
-	obj, err := objectResult(p.ctx, rtn)
+	obj, err := objectResult(p.ISO, rtn)
 	if err != nil {
 		panic(err) // TODO: Return error
 	}
@@ -117,9 +117,9 @@ func (p *Promise) Then(cbs ...FunctionCallback) *Promise {
 // Catch invokes the given function if the promise is rejected.
 // See Then for other details.
 func (p *Promise) Catch(cb FunctionCallback) *Promise {
-	cbID := p.ctx.iso.registerCallback(cb)
+	cbID := p.ISO.registerCallback(cb)
 	rtn := C.PromiseCatch(p.ptr, C.int(cbID))
-	obj, err := objectResult(p.ctx, rtn)
+	obj, err := objectResult(p.ISO, rtn)
 	if err != nil {
 		panic(err) // TODO: Return error
 	}

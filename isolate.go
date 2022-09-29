@@ -9,6 +9,7 @@ package v8go
 import "C"
 
 import (
+	"runtime"
 	"sync"
 	"unsafe"
 )
@@ -16,7 +17,7 @@ import (
 var v8once sync.Once
 
 // Isolate is a JavaScript VM instance with its own heap and
-// garbage collector. Most applications will create one isolate
+// garbage collector. Most applications will create one ISO
 // with many V8 contexts for execution.
 type Isolate struct {
 	ptr C.IsolatePtr
@@ -31,9 +32,112 @@ type Isolate struct {
 	templateLock sync.Mutex
 	templates    []ITemplate
 	InternalCtx  *Context
+
+	canReleasedValuePtrLock sync.Mutex
+	canReleasedValuePtrMap  map[C.ValuePtr]interface{}
+
+	tracedValuePtrLock sync.Mutex
+	tracedValuePtrMap  map[C.ValuePtr]interface{}
+
+	traceUnboundScriptPtrLock sync.Mutex
+	tracedUnboundScriptPtrMap map[C.UnboundScriptPtr]interface{}
+
+	stopLock sync.Mutex
+	stopped  bool
 }
 
-// HeapStatistics represents V8 isolate heap statistics
+func (i *Isolate) TraceScriptPtr(ptr C.UnboundScriptPtr) {
+	i.traceUnboundScriptPtrLock.Lock()
+	defer i.traceUnboundScriptPtrLock.Unlock()
+	i.tracedUnboundScriptPtrMap[ptr] = struct{}{}
+}
+
+func (i *Isolate) TraceValuePtr(ptr C.ValuePtr) {
+	i.tracedValuePtrLock.Lock()
+	defer i.tracedValuePtrLock.Unlock()
+	i.tracedValuePtrMap[ptr] = struct{}{}
+}
+
+func (i *Isolate) MoveTracedPtrToCanReleaseMap(ptr C.ValuePtr, lock bool) {
+	if lock {
+		i.stopLock.Lock()
+		defer i.stopLock.Unlock()
+		if i.stopped {
+			return
+		}
+		i.tracedValuePtrLock.Lock()
+		defer i.tracedValuePtrLock.Unlock()
+		i.canReleasedValuePtrLock.Lock()
+		defer i.canReleasedValuePtrLock.Unlock()
+	}
+	delete(i.tracedValuePtrMap, ptr)
+	i.canReleasedValuePtrMap[ptr] = struct{}{}
+}
+
+func (i *Isolate) TryReleaseValuePtrInC(lock bool) {
+	if lock {
+		i.canReleasedValuePtrLock.Lock()
+		defer i.canReleasedValuePtrLock.Unlock()
+	}
+	l := len(i.canReleasedValuePtrMap)
+	if l <= 0 {
+		return
+	}
+	valuePointers := make([]C.ValuePtr, l)
+	index := 0
+	for ptr := range i.canReleasedValuePtrMap {
+		valuePointers[index] = ptr
+		index++
+	}
+	C.batchDeleteRecordValuePtr(&valuePointers[0], C.int(len(valuePointers)))
+	runtime.KeepAlive(valuePointers)
+	i.canReleasedValuePtrMap = map[C.ValuePtr]interface{}{}
+}
+
+func (i *Isolate) releaseTracedValuePtrInC(lock bool) {
+	if lock {
+		i.tracedValuePtrLock.Lock()
+		defer i.tracedValuePtrLock.Unlock()
+	}
+	l := len(i.tracedValuePtrMap)
+	if l <= 0 {
+		return
+	}
+	valuePointers := make([]C.ValuePtr, l)
+	index := 0
+	for ptr := range i.tracedValuePtrMap {
+		valuePointers[index] = ptr
+		index++
+	}
+	C.batchDeleteRecordValuePtr(&valuePointers[0], C.int(len(valuePointers)))
+	runtime.KeepAlive(valuePointers)
+	i.tracedValuePtrMap = map[C.ValuePtr]interface{}{}
+}
+
+func (i *Isolate) GetTracedValueCnt() int {
+	return len(i.tracedValuePtrMap) + len(i.canReleasedValuePtrMap)
+}
+
+func (i *Isolate) releaseAllValuePtrInC() {
+	i.tracedValuePtrLock.Lock()
+	defer i.tracedValuePtrLock.Unlock()
+	i.canReleasedValuePtrLock.Lock()
+	defer i.canReleasedValuePtrLock.Unlock()
+	i.TryReleaseValuePtrInC(false)
+	i.releaseTracedValuePtrInC(false)
+}
+
+func (i *Isolate) releaseScriptsInC() {
+	i.traceUnboundScriptPtrLock.Lock()
+	defer i.traceUnboundScriptPtrLock.Unlock()
+	for ptr, _ := range i.tracedUnboundScriptPtrMap {
+		C.deleteRecordUnboundScriptPtr(ptr)
+		delete(i.tracedUnboundScriptPtrMap, ptr)
+	}
+	i.tracedUnboundScriptPtrMap = map[C.UnboundScriptPtr]interface{}{}
+}
+
+// HeapStatistics represents V8 ISO heap statistics
 type HeapStatistics struct {
 	TotalHeapSize            uint64
 	TotalHeapSizeExecutable  uint64
@@ -48,10 +152,10 @@ type HeapStatistics struct {
 	NumberOfDetachedContexts uint64
 }
 
-// NewIsolate creates a new V8 isolate. Only one thread may access
-// a given isolate at a time, but different threads may access
+// NewIsolate creates a new V8 ISO. Only one thread may access
+// a given ISO at a time, but different threads may access
 // different isolates simultaneously.
-// When a isolate is no longer used its resources should be freed
+// When a ISO is no longer used its resources should be freed
 // by calling iso.Dispose().
 // An *Isolate can be used as a v8go.ContextOption to create a new
 // Context, rather than creating a new default Isolate.
@@ -66,11 +170,13 @@ func NewIsolate() *Isolate {
 	ref = ctxSeq
 	ctxMutex.Unlock()
 	iso := &Isolate{
-		ptr: C.NewIsolate(C.int(ref)),
-		cbs: make(map[int]FunctionCallback),
+		ptr:                       C.NewIsolate(C.int(ref)),
+		cbs:                       make(map[int]FunctionCallback),
+		tracedValuePtrMap:         map[C.ValuePtr]interface{}{},
+		canReleasedValuePtrMap:    map[C.ValuePtr]interface{}{},
+		tracedUnboundScriptPtrMap: map[C.UnboundScriptPtr]interface{}{},
 	}
 	contextPtr := C.getDefaultContext(iso.ptr)
-
 	ctx := &Context{
 		ref: ref,
 		ptr: contextPtr,
@@ -84,7 +190,7 @@ func NewIsolate() *Isolate {
 }
 
 // TerminateExecution terminates forcefully the current thread
-// of JavaScript execution in the given isolate.
+// of JavaScript execution in the given ISO.
 func (i *Isolate) TerminateExecution() {
 	C.IsolateTerminateExecution(i.ptr)
 }
@@ -107,7 +213,12 @@ type CompileOptions struct {
 // If options contain a non-null CachedData, compilation of the script will use
 // that code cache.
 // error will be of type `JSError` if not nil.
-func (i *Isolate) CompileUnboundScript(source, origin string, opts CompileOptions) (*UnboundScript, error) {
+func (i *Isolate) CompileUnboundScript(source, origin string, opts CompileOptions) (ret *UnboundScript, err error) {
+	defer func() {
+		if ret != nil {
+			i.TraceScriptPtr(ret.ptr)
+		}
+	}()
 	cSource := C.CString(source)
 	cOrigin := C.CString(origin)
 	defer FreeCPtr(unsafe.Pointer(cSource))
@@ -135,13 +246,14 @@ func (i *Isolate) CompileUnboundScript(source, origin string, opts CompileOption
 	if opts.CachedData != nil {
 		opts.CachedData.Rejected = int(rtn.cachedDataRejected) == 1
 	}
+
 	return &UnboundScript{
 		ptr: rtn.ptr,
 		iso: i,
 	}, nil
 }
 
-// GetHeapStatistics returns heap statistics for an isolate.
+// GetHeapStatistics returns heap statistics for an ISO.
 func (i *Isolate) GetHeapStatistics() HeapStatistics {
 	hs := C.IsolationGetHeapStatistics(i.ptr)
 
@@ -162,7 +274,11 @@ func (i *Isolate) GetHeapStatistics() HeapStatistics {
 
 // Dispose will dispose the Isolate VM; subsequent calls will panic.
 func (i *Isolate) Dispose() {
-	i.InternalCtx.stopped = true
+	i.stopLock.Lock()
+	defer i.stopLock.Unlock()
+	i.stopped = true
+	i.releaseAllValuePtrInC()
+	i.releaseScriptsInC()
 	if i.ptr == nil {
 		return
 	}
@@ -184,7 +300,7 @@ func (i *Isolate) ThrowException(value *Value) *Value {
 	if i.ptr == nil {
 		panic("Isolate has been disposed")
 	}
-	return NewValueStruct(C.IsolateThrowException(i.ptr, value.ptr), nil)
+	return NewValueStruct(C.IsolateThrowException(i.ptr, value.ptr), i)
 }
 
 // Deprecated: use `iso.Dispose()`.
@@ -209,4 +325,20 @@ func (i *Isolate) getCallback(ref int) FunctionCallback {
 	i.cbMutex.RLock()
 	defer i.cbMutex.RUnlock()
 	return i.cbs[ref]
+}
+
+func (i *Isolate) BatchMarkCanReleaseInC(values ...*Value) {
+	i.stopLock.Lock()
+	defer i.stopLock.Unlock()
+	if i.stopped {
+		return
+	}
+	i.tracedValuePtrLock.Lock()
+	defer i.tracedValuePtrLock.Unlock()
+	i.canReleasedValuePtrLock.Lock()
+	defer i.canReleasedValuePtrLock.Unlock()
+	for _, v := range values {
+		runtime.SetFinalizer(v, nil)
+		i.MoveTracedPtrToCanReleaseMap(v.ptr, false)
+	}
 }

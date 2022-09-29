@@ -21,7 +21,6 @@ func main() {
 	}
 	copied := x.GetCopiedArrayBufferViewContents()
 	fmt.Println(len(copied))
-	fmt.Println(ctx.StorageSize())
 	ctx.Close()
 	iso.Dispose()
 	//}

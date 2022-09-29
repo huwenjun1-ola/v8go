@@ -69,7 +69,7 @@ func NewFunctionTemplate(iso *Isolate, callback FunctionCallback) *FunctionTempl
 // GetFunction returns an instance of this function template bound to the given context.
 func (tmpl *FunctionTemplate) GetFunction(ctx *Context) *Function {
 	rtn := C.FunctionTemplateGetFunction(tmpl.ptr, ctx.ptr)
-	val, err := valueResult(ctx, rtn)
+	val, err := valueResult(ctx.iso, rtn)
 	if err != nil {
 		panic(err) // TODO: Consider returning the error
 	}
@@ -85,13 +85,18 @@ func goFunctionCallback(ctxref int, cbref int, thisAndArgs *C.ValuePtr, argsCoun
 	this := *thisAndArgs
 	info := &FunctionCallbackInfo{
 		ctx:  ctx,
-		this: &Object{NewValueStruct(this, ctx)},
+		this: &Object{Value: NewValueStruct(this, ctx.iso)},
 		args: make([]*Value, argsCount),
 	}
-
+	defer func() {
+		bt := make([]*Value, 0)
+		bt = append(bt, info.this.Value)
+		bt = append(bt, info.args...)
+		ctx.iso.BatchMarkCanReleaseInC(bt...)
+	}()
 	argv := (*[1 << 30]C.ValuePtr)(unsafe.Pointer(thisAndArgs))[1 : argsCount+1 : argsCount+1]
 	for i, v := range argv {
-		val := NewValueStruct(v, ctx)
+		val := NewValueStruct(v, ctx.iso)
 		info.args[i] = val
 	}
 

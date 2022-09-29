@@ -31,8 +31,8 @@ const int ScriptCompilerEagerCompile = ScriptCompiler::kEagerCompile;
 
 struct m_ctx {
     Isolate *iso;
-    std::vector<m_value *> vals;
-    std::vector<m_unboundScript *> unboundScripts;
+//    std::vector<m_value *> vals;
+//    std::vector<m_unboundScript *> unboundScripts;
     Persistent<Context> ptr;
     int ref;
 };
@@ -125,13 +125,13 @@ m_value *tracked_value(m_ctx *ctx, m_value *val) {
     // Go <--> C, which would be a significant change, as there are places where
     // we get the context from the value, but if we then need the context to get
     // the value, we would be in a circular bind.
-    ctx->vals.push_back(val);
+//    ctx->vals.push_back(val);
 
     return val;
 }
 
 m_unboundScript *tracked_unbound_script(m_ctx *ctx, m_unboundScript *us) {
-    ctx->unboundScripts.push_back(us);
+//    ctx->unboundScripts.push_back(us);
     return us;
 }
 
@@ -618,15 +618,15 @@ void ContextFree(ContextPtr ctx) {
         return;
     }
     ctx->ptr.Reset();
-    for (m_value *val: ctx->vals) {
-        val->ptr.Reset();
-        delete val;
-    }
+//    for (m_value *val: ctx->vals) {
+//        val->ptr.Reset();
+//        delete val;
+//    }
 
-    for (m_unboundScript *us: ctx->unboundScripts) {
-        us->ptr.Reset();
-        delete us;
-    }
+//    for (m_unboundScript *us: ctx->unboundScripts) {
+//        us->ptr.Reset();
+//        delete us;
+//    }
 
     delete ctx;
 }
@@ -1689,37 +1689,41 @@ void deleteRecordValuePtr(ValuePtr p) {
     if (p == 0) {
         return;
     }
-    m_ctx *ctx = p->ctx;
-    if (ctx == 0){
+    p->ptr.Reset();
+    delete p;
+}
+
+void batchDeleteRecordValuePtr(ValuePtr *p, int n) {
+    if (p == 0) {
         return;
     }
-    if(ctx->vals.empty()){
+    for (int index = 0; index < n; index++) {
+        m_value *cur = p[index];
+        cur->ptr.Reset();
+        delete cur;
+    }
+}
+
+void deleteRecordUnboundScriptPtr(UnboundScriptPtr p) {
+    if (p == 0) {
         return;
     }
     p->ptr.Reset();
-    auto v = std::find(ctx->vals.begin(), ctx->vals.end(), p);
-    auto ret=*v;
-    if (ret != 0) {
-        ctx->vals.erase(v);
-        delete p;
-    }
+    delete p;
 }
-int getCtxRefByValuePtr(ValuePtr v){
-    if(v == 0){
+
+
+int getCtxRefByValuePtr(ValuePtr v) {
+    if (v == 0) {
         return -1;
     }
-    if(v->ctx == 0){
+    if (v->ctx == 0) {
         return -1;
     }
     return v->ctx->ref;
 }
-int getCtxStorageSize(ContextPtr ctx){
-    if (ctx == 0) {
-        return 0;
-    }
-    return ctx->vals.size();
-}
-ContextPtr getDefaultContext(IsolatePtr iso_ptr){
+
+ContextPtr getDefaultContext(IsolatePtr iso_ptr) {
     ISOLATE_SCOPE_INTERNAL_CONTEXT(iso_ptr);
     return ctx;
 }

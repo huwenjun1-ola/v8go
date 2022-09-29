@@ -15,15 +15,15 @@ type UnboundScript struct {
 }
 
 // Run will bind the unbound script to the provided context and run it.
-// If the context provided does not belong to the same isolate that the script
+// If the context provided does not belong to the same ISO that the script
 // was compiled in, Run will panic.
 // If an error occurs, it will be of type `JSError`.
 func (u *UnboundScript) Run(ctx *Context) (*Value, error) {
 	if ctx.Isolate() != u.iso {
-		panic("attempted to run unbound script in a context that belongs to a different isolate")
+		panic("attempted to run unbound script in a context that belongs to a different ISO")
 	}
 	rtn := C.UnboundScriptRun(ctx.ptr, u.ptr)
-	return valueResult(ctx, rtn)
+	return valueResult(ctx.iso, rtn)
 }
 
 // Create a code cache from the unbound script.

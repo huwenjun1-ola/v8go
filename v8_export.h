@@ -454,7 +454,9 @@ extern V8GO_EXPORT void freeV8GoPtr(void *p);
 
 extern V8GO_EXPORT void deleteRecordValuePtr(ValuePtr p);
 
-extern V8GO_EXPORT int getCtxStorageSize(ContextPtr ctx);
+extern V8GO_EXPORT void batchDeleteRecordValuePtr(ValuePtr* p, int n);
+
+extern V8GO_EXPORT void deleteRecordUnboundScriptPtr(UnboundScriptPtr p);
 
 extern V8GO_EXPORT int getCtxRefByValuePtr(ValuePtr ctx);
 

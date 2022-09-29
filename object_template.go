@@ -58,7 +58,7 @@ func (o *ObjectTemplate) NewInstance(ctx *Context) (*Object, error) {
 		return nil, errors.New("v8go: Context cannot be <nil>")
 	}
 	rtn := C.ObjectTemplateNewInstance(o.ptr, ctx.ptr)
-	return objectResult(ctx, rtn)
+	return objectResult(ctx.iso, rtn)
 }
 
 // SetInternalFieldCount sets the number of internal fields that instances of this

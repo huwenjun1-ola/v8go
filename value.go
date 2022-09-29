@@ -13,41 +13,36 @@ import (
 	"io"
 	"math/big"
 	"runtime"
-	"sync"
 	"unsafe"
 )
 
 // Value represents all Javascript values and objects
 type Value struct {
 	ptr C.ValuePtr
-	ctx *Context
+	ISO *Isolate
 }
 
-func NewValueStruct(valPtr C.ValuePtr, c *Context) (ret *Value) {
+func NewValueStruct(valPtr C.ValuePtr, c *Isolate) (ret *Value) {
 	defer func() {
-		runtime.SetFinalizer(ret, ReleaseValuePtrInC)
+		runtime.SetFinalizer(ret, MarkValuePtrCanReleaseInC)
 	}()
-	targetC := c
-	if targetC == nil {
-		ref := int(C.getCtxRefByValuePtr(valPtr))
-		targetC = getContext(ref)
+	if c != nil {
+		c.TraceValuePtr(valPtr)
 	}
 	v := &Value{
 		ptr: valPtr,
-		ctx: targetC,
+		ISO: c,
 	}
 	return v
 }
 
-func (v *Value) MarkRelease() {
-	Lock.Lock()
-	defer Lock.Unlock()
+func (v *Value) MarkValuePtrCanReleaseInC() {
 	runtime.SetFinalizer(v, nil)
-	_, ex := GlobalValuePtrMap[v.ptr]
-	if ex {
-		return
-	}
-	GlobalValuePtrMap[v.ptr] = struct{}{}
+	v.ISO.MoveTracedPtrToCanReleaseMap(v.ptr, true)
+}
+
+func MarkValuePtrCanReleaseInC(v *Value) {
+	v.MarkValuePtrCanReleaseInC()
 }
 
 // Valuer is an interface that reperesents anything that extends from a Value
@@ -61,11 +56,11 @@ func (v *Value) value() *Value {
 }
 
 func newValueNull(iso *Isolate) *Value {
-	return NewValueStruct(C.NewValueNull(iso.ptr), nil)
+	return NewValueStruct(C.NewValueNull(iso.ptr), iso)
 }
 
 func newValueUndefined(iso *Isolate) *Value {
-	return NewValueStruct(C.NewValueUndefined(iso.ptr), nil)
+	return NewValueStruct(C.NewValueUndefined(iso.ptr), iso)
 }
 
 // Undefined returns the `undefined` JS value
@@ -76,32 +71,6 @@ func Undefined(iso *Isolate) *Value {
 // Null returns the `null` JS value
 func Null(iso *Isolate) *Value {
 	return iso.null
-}
-
-var Lock sync.Mutex
-var GlobalValuePtrMap = map[C.ValuePtr]interface{}{}
-
-func ReleaseValuePtrInC(value *Value) {
-	if value.ctx != nil && value.ctx.stopped {
-		return
-	}
-	Lock.Lock()
-	defer Lock.Unlock()
-	GlobalValuePtrMap[value.ptr] = struct{}{}
-}
-
-func DoRelease() {
-	Lock.Lock()
-	defer Lock.Unlock()
-	//l := len(GlobalValuePtrMap)
-	//if l > 0 {
-	//	fmt.Println(l)
-	//}
-
-	for ptr, _ := range GlobalValuePtrMap {
-		C.deleteRecordValuePtr(ptr)
-		delete(GlobalValuePtrMap, ptr)
-	}
 }
 
 // NewValue will create a primitive value. Supported values types to create are:
@@ -132,45 +101,45 @@ func NewValue(iso *Isolate, val interface{}) (rtnVal *Value, e error) {
 		cstr := C.CString(v)
 		defer FreeCPtr(unsafe.Pointer(cstr))
 		rtn := C.NewValueString(iso.ptr, cstr)
-		return valueResult(nil, rtn)
+		return valueResult(iso, rtn)
 	case int8:
-		rtnVal = NewValueStruct(C.NewValueInteger(iso.ptr, C.int(int32(v))), nil)
+		rtnVal = NewValueStruct(C.NewValueInteger(iso.ptr, C.int(int32(v))), iso)
 	case int16:
-		rtnVal = NewValueStruct(C.NewValueInteger(iso.ptr, C.int(int32(v))), nil)
+		rtnVal = NewValueStruct(C.NewValueInteger(iso.ptr, C.int(int32(v))), iso)
 	case int32:
-		rtnVal = NewValueStruct(C.NewValueInteger(iso.ptr, C.int(v)), nil)
+		rtnVal = NewValueStruct(C.NewValueInteger(iso.ptr, C.int(v)), iso)
 	case uint8:
-		rtnVal = NewValueStruct(C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(uint32(v))), nil)
+		rtnVal = NewValueStruct(C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(uint32(v))), iso)
 	case uint16:
-		rtnVal = NewValueStruct(C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(uint32(v))), nil)
+		rtnVal = NewValueStruct(C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(uint32(v))), iso)
 	case uint32:
-		rtnVal = NewValueStruct(C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(v)), nil)
+		rtnVal = NewValueStruct(C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(v)), iso)
 	case int:
-		rtnVal = NewValueStruct(C.NewValueBigInt(iso.ptr, C.int64_t(int64(v))), nil)
+		rtnVal = NewValueStruct(C.NewValueBigInt(iso.ptr, C.int64_t(int64(v))), iso)
 	case uint:
-		rtnVal = NewValueStruct(C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(uint64(v))), nil)
+		rtnVal = NewValueStruct(C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(uint64(v))), iso)
 	case int64:
-		rtnVal = NewValueStruct(C.NewValueBigInt(iso.ptr, C.int64_t(v)), nil)
+		rtnVal = NewValueStruct(C.NewValueBigInt(iso.ptr, C.int64_t(v)), iso)
 	case uint64:
-		rtnVal = NewValueStruct(C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(v)), nil)
+		rtnVal = NewValueStruct(C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(v)), iso)
 	case bool:
 		var b int
 		if v {
 			b = 1
 		}
-		rtnVal = NewValueStruct(C.NewValueBoolean(iso.ptr, C.int(b)), nil)
+		rtnVal = NewValueStruct(C.NewValueBoolean(iso.ptr, C.int(b)), iso)
 	case float32:
-		rtnVal = NewValueStruct(C.NewValueNumber(iso.ptr, C.double(float64(v))), nil)
+		rtnVal = NewValueStruct(C.NewValueNumber(iso.ptr, C.double(float64(v))), iso)
 	case float64:
-		rtnVal = NewValueStruct(C.NewValueNumber(iso.ptr, C.double(v)), nil)
+		rtnVal = NewValueStruct(C.NewValueNumber(iso.ptr, C.double(v)), iso)
 	case *big.Int:
 		if v.IsInt64() {
-			rtnVal = NewValueStruct(C.NewValueBigInt(iso.ptr, C.int64_t(v.Int64())), nil)
+			rtnVal = NewValueStruct(C.NewValueBigInt(iso.ptr, C.int64_t(v.Int64())), iso)
 			break
 		}
 
 		if v.IsUint64() {
-			rtnVal = NewValueStruct(C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(v.Uint64())), nil)
+			rtnVal = NewValueStruct(C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(v.Uint64())), iso)
 			break
 		}
 
@@ -187,7 +156,7 @@ func NewValue(iso *Isolate, val interface{}) (rtnVal *Value, e error) {
 		}
 
 		rtn := C.NewValueBigIntFromWords(iso.ptr, C.int(sign), C.int(count), &words[0])
-		return valueResult(nil, rtn)
+		return valueResult(iso, rtn)
 	default:
 		return nil, fmt.Errorf("v8go: unsupported value type `%T`", v)
 	}
@@ -286,7 +255,7 @@ func (v *Value) Number() float64 {
 // To just cast this value as an Object use AsObject() instead.
 func (v *Value) Object() *Object {
 	rtn := C.ValueToObject(v.ptr)
-	obj, err := objectResult(v.ctx, rtn)
+	obj, err := objectResult(v.ISO, rtn)
 	if err != nil {
 		panic(err) // TODO: Return error
 	}
@@ -372,7 +341,7 @@ func (v *Value) IsFunction() bool {
 
 // IsObject returns true if this value is an object.
 func (v *Value) IsObject() bool {
-	return v.ctx != nil && C.ValueIsObject(v.ptr) != 0
+	return v.ISO != nil && C.ValueIsObject(v.ptr) != 0
 }
 
 // IsBigInt returns true if this value is a bigint.
@@ -396,7 +365,7 @@ func (v *Value) IsNumber() bool {
 // IsExternal returns true if this value is an `External` object.
 func (v *Value) IsExternal() bool {
 	// TODO(rogchap): requires test case
-	return v.ctx != nil && C.ValueIsExternal(v.ptr) != 0
+	return v.ISO != nil && C.ValueIsExternal(v.ptr) != 0
 }
 
 // IsInt32 returns true if this value is a 32-bit signed integer.
