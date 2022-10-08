@@ -191,6 +191,10 @@ func NewIsolate() *Isolate {
 	return iso
 }
 
+func CloseAllV8() {
+	C.CloseV8()
+}
+
 // TerminateExecution terminates forcefully the current thread
 // of JavaScript execution in the given ISO.
 func (i *Isolate) TerminateExecution() {

@@ -23,6 +23,7 @@ func main() {
 	fmt.Println(len(copied))
 	ctx.Close()
 	iso.Dispose()
+	v8go.CloseAllV8()
 	//}
 	runtime.GC()
 }
