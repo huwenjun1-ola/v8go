@@ -1695,7 +1695,6 @@ void deleteRecordValuePtr(ValuePtr p) {
         return;
     }
     p->ptr.Reset();
-    printf("delete value struct %l\n",p);
     delete p;
 }
 
@@ -1706,7 +1705,6 @@ void batchDeleteRecordValuePtr(ValuePtr *p, int n) {
     for (int index = 0; index < n; index++) {
         m_value *cur = p[index];
         cur->ptr.Reset();
-        printf("delete value struct %l\n",cur);
         delete cur;
     }
 }
