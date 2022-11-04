@@ -12,7 +12,7 @@ package v8go
 //import "C"
 
 // #cgo CFLAGS:-I${SRCDIR}/ -w
-// #cgo LDFLAGS: -L${SRCDIR}/lib/darwin_arm64 -lv8_export -lv8 -pthread
+// #cgo LDFLAGS: -L${SRCDIR}/lib/darwin_arm64 -lv8_export -lv8 -pthread -ldl -lc++
 import "C"
 import (
 	_ "gitee.com/hasika/v8go/lib/darwin_arm64"
