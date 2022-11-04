@@ -1,5 +1,6 @@
 #!/bin/sh
-
+export CC=clang
+export CXX=clang++
 if [ -e CMakeCache.txt ]; then
   rm CMakeCache.txt
 fi
