@@ -18,6 +18,5 @@ package v8go
 import "C"
 import (
 	_ "gitee.com/hasika/v8go/lib/darwin_arm64"
-	_ "gitee.com/hasika/v8go/lib/darwin_x86_64"
 	_ "gitee.com/hasika/v8go/lib/linux_x86_64"
 )
