@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.10)
 project(v8_export C CXX)
 
-set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdlib++ -stdlib=libc++")
-set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nostdlib++ -stdlib=libc++")
+#set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -nostdlib++ -stdlib=libc++")
+#set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -nostdlib++ -stdlib=libc++")
 set(CMAKE_CXX_STANDARD 14)
 include_directories(include)
 add_definitions(-DCOMPILE_EXPORT)
