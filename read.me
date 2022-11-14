@@ -1,0 +1,7 @@
+编译要求
+ubuntu-14:
+    //使用2.26版本ld
+    apt-get install binutils-2.26
+    sudo rm /usr/bin/ld
+    ln -s /usr/bin/ld.gold-2.26 /usr/bin/ld
+    //使用gcc
