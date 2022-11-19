@@ -9,7 +9,8 @@
 #include <vector>
 #include <unordered_map>
 #include <functional>
-#include "V8InspectorClientImpl.h"
+#include "V8InspectorImpl.h"
+#include "V8InspectorImpl.cpp"
 
 ///
 m_ctx *(*getGoContextFuncEntry)(int);
@@ -166,7 +167,7 @@ void Init() {
     return;
 }
 
-void CloseV8(){
+void CloseV8() {
     V8::Dispose();
     V8::ShutdownPlatform();
 }
@@ -1669,21 +1670,20 @@ void SetFlags(const char *flags) {
 /***********Inspector*********/
 using namespace v8_inspector;
 
-RawInspectorClientPtr NewInspectorClient(ContextPtr ctx, int32_t inspectorId) {
+RawInspectorClientPtr NewInspectorClient(ContextPtr ctx, int32_t port) {
     LOCAL_CONTEXT(ctx);
-    auto ptr = new V8InspectorClientImpl(local_ctx, inspectorId);
+    auto ptr = puerts::CreateV8Inspector(port, &local_ctx);
     return RawInspectorClientPtr(ptr);
 }
-void BindMessageSendFuncToClient(RawInspectorClientPtr clientPtr) {
-    bindMessageSendFuncToClient(clientPtr, goSendMessageFuncEntry);
+
+bool InspectorTick(RawInspectorClientPtr ptr) {
+    puerts::V8Inspector *inspector = (puerts::V8Inspector *) ptr;
+    return inspector->Tick();
 }
 
-void BindTickFuncToClient(RawInspectorClientPtr clientPtr) {
-    bindTickFuncToClient(clientPtr, goTickFuncEntry);
-}
-
-void OnReceiveMessage(RawInspectorClientPtr clientPtr, char *Message) {
-    onReceiveMessage(clientPtr, Message);
+bool InspectorAlive(RawInspectorClientPtr ptr) {
+    puerts::V8Inspector *inspector = (puerts::V8Inspector *) ptr;
+    return inspector->IsALive();
 }
 
 void freeV8GoPtr(void *p) {

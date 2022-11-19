@@ -444,13 +444,11 @@ typedef void *RawInspectorClientPtr;
 typedef const char *RawCharPtr;
 typedef int *RawIntPtr;
 
-extern V8GO_EXPORT RawInspectorClientPtr NewInspectorClient(ContextPtr ctx, int32_t inspectorId);
+extern V8GO_EXPORT RawInspectorClientPtr NewInspectorClient(ContextPtr ctx, int32_t port);
 
-extern V8GO_EXPORT void BindMessageSendFuncToClient(RawInspectorClientPtr clientPtr);
+extern V8GO_EXPORT bool InspectorTick(RawInspectorClientPtr ptr);
 
-extern V8GO_EXPORT void BindTickFuncToClient(RawInspectorClientPtr clientPtr);
-
-extern V8GO_EXPORT void OnReceiveMessage(RawInspectorClientPtr clientPtr, char *Message);
+extern V8GO_EXPORT bool InspectorAlive(RawInspectorClientPtr ptr);
 
 extern V8GO_EXPORT void freeV8GoPtr(void *p);
 
