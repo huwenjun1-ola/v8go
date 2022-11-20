@@ -7,7 +7,7 @@
 package v8go
 
 // #cgo CFLAGS:-I${SRCDIR}/ -w
-// #cgo LDFLAGS: -L${SRCDIR}/lib/win_64 -lv8_export
+// #cgo LDFLAGS: -L${SRCDIR}/lib/win_x64 -lv8_export
 import "C"
 
 //windows 下使用动态库链接,需要直接链接,不需要编译v8_export

@@ -1,1 +1,1 @@
-package win_x64
+package win_x86_64
