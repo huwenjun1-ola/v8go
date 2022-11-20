@@ -4,6 +4,7 @@
 
 #ifndef V8_EXPORT_H
 #define V8_EXPORT_H
+#include <stdbool.h>
 
 #ifdef _WINDOWS
 #define V8GO_EXPORT __declspec(dllexport)
@@ -140,8 +141,7 @@ typedef struct {
 
 
 extern V8GO_EXPORT void
-InitV8Go(m_ctx *(*getGoContextFuncEntry)(int), ValuePtr (*goFunctionCallbackEntry)(int, int, ValuePtr *, int),
-         void (*goTickFuncEntry)(int32_t), void (*goSendMessageFuncEntry)(int32_t, const char *));
+InitV8Go(m_ctx *(*getGoContextFuncEntry)(int), ValuePtr (*goFunctionCallbackEntry)(int, int, ValuePtr *, int));
 extern V8GO_EXPORT void Init();
 
 extern V8GO_EXPORT void CloseV8();
