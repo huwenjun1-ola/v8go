@@ -15,9 +15,10 @@ func (i *InspectorServer) WaitDebugger() {
 			break
 		}
 	}
+	go i.run()
 }
 
-func (i *InspectorServer) Run() {
+func (i *InspectorServer) run() {
 	for {
 		C.InspectorTick(i.InspectorClientPtr)
 		closed := bool(C.InspectorAlive(i.InspectorClientPtr))
