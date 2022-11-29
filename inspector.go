@@ -3,6 +3,7 @@ package v8go
 //#include <stdlib.h>
 //#include "v8go.h"
 import "C"
+import "fmt"
 
 type InspectorServer struct {
 	InspectorClientPtr C.RawInspectorClientPtr
@@ -12,6 +13,7 @@ func (i *InspectorServer) WaitDebugger() {
 	for {
 		ok := bool(C.InspectorTick(i.InspectorClientPtr))
 		if ok {
+			fmt.Println("Inspector Connected Now")
 			break
 		}
 	}
@@ -21,8 +23,9 @@ func (i *InspectorServer) WaitDebugger() {
 func (i *InspectorServer) run() {
 	for {
 		C.InspectorTick(i.InspectorClientPtr)
-		closed := bool(C.InspectorAlive(i.InspectorClientPtr))
-		if closed {
+		alive := bool(C.InspectorAlive(i.InspectorClientPtr))
+		if !alive {
+			fmt.Println("Inspector Not Alive,Close Now")
 			return
 		}
 	}
