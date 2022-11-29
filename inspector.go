@@ -17,10 +17,9 @@ func (i *InspectorServer) WaitDebugger() {
 			break
 		}
 	}
-	go i.run()
 }
 
-func (i *InspectorServer) run() {
+func (i *InspectorServer) Run() {
 	for {
 		C.InspectorTick(i.InspectorClientPtr)
 		alive := bool(C.InspectorAlive(i.InspectorClientPtr))

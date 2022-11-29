@@ -41,6 +41,7 @@ func (t *TsEnv) Init(waitDebugger bool, debugEnable bool, debugPort uint32) erro
 		if waitDebugger {
 			ins.WaitDebugger()
 		}
+		go ins.Run()
 	}
 	//初始化为node
 	err := t.Ctx.Global().Set("global", t.Ctx.Global())
