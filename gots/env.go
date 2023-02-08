@@ -2,6 +2,7 @@ package gots
 
 import (
 	"fmt"
+
 	"gitee.com/hasika/v8go"
 )
 
@@ -14,6 +15,7 @@ type TsEnv struct {
 	emptyClass    *v8go.ObjectTemplate
 	PreLoadFiles  []string
 	Trace         bool
+	LogFunc       func(a ...interface{})
 }
 
 func NewTsEnv(tsModuleDir string) *TsEnv {
@@ -126,7 +128,7 @@ func (t *TsEnv) initGlobalClass() {
 		return nil
 	}))
 	_ = globalClass.Set("__log", v8go.NewFunctionTemplate(t.Iso, func(info *v8go.FunctionCallbackInfo) *v8go.Value {
-		fmt.Println(info.Args())
+		t.Log(info.Args())
 		return nil
 	}))
 	_ = globalClass.Set("__tgjsEvalScript", v8go.NewFunctionTemplate(t.Iso, func(info *v8go.FunctionCallbackInfo) *v8go.Value {
@@ -211,5 +213,13 @@ func (t *TsEnv) RunScriptWithWrapperByScript(fullPath string, preprocessor Scrip
 func (t *TsEnv) Print(in string, args ...interface{}) {
 	if t.Trace {
 		fmt.Println(fmt.Sprintf(in, args...))
+	}
+}
+
+func (t *TsEnv) Log(args []*v8go.Value) {
+	if t.LogFunc != nil {
+		t.LogFunc(args[1:])
+	} else {
+		fmt.Println(args[1:])
 	}
 }

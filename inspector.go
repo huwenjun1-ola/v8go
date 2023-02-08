@@ -3,14 +3,19 @@ package v8go
 //#include <stdlib.h>
 //#include "v8go.h"
 import "C"
-import "fmt"
+import (
+	"fmt"
+	"time"
+)
 
 type InspectorServer struct {
 	InspectorClientPtr C.RawInspectorClientPtr
 }
 
 func (i *InspectorServer) WaitDebugger() {
-	for {
+	ticker := time.NewTicker(time.Millisecond * 16)
+	defer ticker.Stop()
+	for range ticker.C {
 		ok := bool(C.InspectorTick(i.InspectorClientPtr))
 		if ok {
 			fmt.Println("Inspector Connected Now")
@@ -20,7 +25,9 @@ func (i *InspectorServer) WaitDebugger() {
 }
 
 func (i *InspectorServer) Run() {
-	for {
+	ticker := time.NewTicker(time.Millisecond * 16)
+	defer ticker.Stop()
+	for range ticker.C {
 		C.InspectorTick(i.InspectorClientPtr)
 		alive := bool(C.InspectorAlive(i.InspectorClientPtr))
 		if !alive {
