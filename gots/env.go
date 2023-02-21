@@ -86,6 +86,19 @@ func (t *TsEnv) Init(waitDebugger bool, debugEnable bool, debugPort uint32) erro
 	if err != nil {
 		panic(err)
 	}
+	window, err := t.CreateEmptyObject()
+	defer func() {
+		if window != nil {
+			window.MarkValuePtrCanReleaseInC()
+		}
+	}()
+	if err != nil {
+		panic(err)
+	}
+	err = t.Ctx.Global().Set("window", window)
+	if err != nil {
+		panic(err)
+	}
 	//log modular 最先运行
 	_, err = t.RunScriptWithWrapperByScript("____log.js", nil, logScript, false)
 	if err != nil {
