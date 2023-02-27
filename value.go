@@ -242,6 +242,24 @@ func (v *Value) Int32() int32 {
 	return int32(C.ValueToInt32(v.ptr))
 }
 
+func (v *Value) Int32Array() []int32 {
+	if !v.IsArray() {
+		return nil
+	}
+	obj := v.Object()
+	arrLen := int(C.GetArrayLen(v.ptr))
+	arr := make([]int32, 0, arrLen)
+	for i := 0; i < arrLen; i++ {
+		elem, err := obj.GetIdx(uint32(i))
+		if err != nil {
+			fmt.Errorf("%+v", err)
+			break
+		}
+		arr = append(arr, elem.Int32())
+	}
+	return arr
+}
+
 // Integer perform the equivalent of `Number(value)` in JS and convert the result to an integer.
 // Negative values are rounded up, positive values are rounded down. NaN is converted to 0.
 // Infinite values yield undefined results.
