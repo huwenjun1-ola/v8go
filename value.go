@@ -12,6 +12,7 @@ import (
 	"fmt"
 	"io"
 	"math/big"
+	"reflect"
 	"runtime"
 	"unsafe"
 )
@@ -98,70 +99,91 @@ func NewValue(iso *Isolate, val interface{}) (rtnVal *Value, e error) {
 	if iso == nil {
 		return nil, errors.New("v8go: failed to create new Value: Isolate cannot be <nil>")
 	}
-
-	switch v := val.(type) {
-	case string:
-		cstr := C.CString(v)
-		defer FreeCPtr(unsafe.Pointer(cstr))
-		rtn := C.NewValueString(iso.ptr, cstr)
-		return valueResult(iso, rtn)
-	case int8:
-		rtnVal = NewValueStruct(C.NewValueInteger(iso.ptr, C.int(int32(v))), iso)
-	case int16:
-		rtnVal = NewValueStruct(C.NewValueInteger(iso.ptr, C.int(int32(v))), iso)
-	case int32:
-		rtnVal = NewValueStruct(C.NewValueInteger(iso.ptr, C.int(v)), iso)
-	case uint8:
-		rtnVal = NewValueStruct(C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(uint32(v))), iso)
-	case uint16:
-		rtnVal = NewValueStruct(C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(uint32(v))), iso)
-	case uint32:
-		rtnVal = NewValueStruct(C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(v)), iso)
-	case int:
-		rtnVal = NewValueStruct(C.NewValueBigInt(iso.ptr, C.int64_t(int64(v))), iso)
-	case uint:
-		rtnVal = NewValueStruct(C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(uint64(v))), iso)
-	case int64:
-		rtnVal = NewValueStruct(C.NewValueBigInt(iso.ptr, C.int64_t(v)), iso)
-	case uint64:
-		rtnVal = NewValueStruct(C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(v)), iso)
-	case bool:
-		var b int
-		if v {
-			b = 1
+	rfValue := reflect.ValueOf(val)
+	kind := rfValue.Kind()
+	if kind == reflect.Slice || kind == reflect.Array {
+		iLen := rfValue.Len()
+		valuePointers := make([]C.ValuePtr, 0, iLen)
+		for i := 0; i < iLen; i++ {
+			arg := rfValue.Index(i).Interface()
+			value, jsValueError := NewValue(iso, arg)
+			if jsValueError != nil {
+				panic(jsValueError)
+			}
+			valuePointers = append(valuePointers, value.ptr)
 		}
-		rtnVal = NewValueStruct(C.NewValueBoolean(iso.ptr, C.int(b)), iso)
-	case float32:
-		rtnVal = NewValueStruct(C.NewValueNumber(iso.ptr, C.double(float64(v))), iso)
-	case float64:
-		rtnVal = NewValueStruct(C.NewValueNumber(iso.ptr, C.double(v)), iso)
-	case *big.Int:
-		if v.IsInt64() {
-			rtnVal = NewValueStruct(C.NewValueBigInt(iso.ptr, C.int64_t(v.Int64())), iso)
-			break
+		var arrPtr *C.ValuePtr
+		if iLen > 0 {
+			arrPtr = &valuePointers[0]
 		}
 
-		if v.IsUint64() {
-			rtnVal = NewValueStruct(C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(v.Uint64())), iso)
-			break
-		}
+		rtnVal = NewValueStruct(C.NewValueArray(iso.ptr, arrPtr, C.uint32_t(uint32(iLen))), iso)
+	} else {
 
-		var sign, count int
-		if v.Sign() == -1 {
-			sign = 1
-		}
-		bits := v.Bits()
-		count = len(bits)
+		switch v := val.(type) {
+		case string:
+			cstr := C.CString(v)
+			defer FreeCPtr(unsafe.Pointer(cstr))
+			rtn := C.NewValueString(iso.ptr, cstr)
+			return valueResult(iso, rtn)
+		case int8:
+			rtnVal = NewValueStruct(C.NewValueInteger(iso.ptr, C.int(int32(v))), iso)
+		case int16:
+			rtnVal = NewValueStruct(C.NewValueInteger(iso.ptr, C.int(int32(v))), iso)
+		case int32:
+			rtnVal = NewValueStruct(C.NewValueInteger(iso.ptr, C.int(v)), iso)
+		case uint8:
+			rtnVal = NewValueStruct(C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(uint32(v))), iso)
+		case uint16:
+			rtnVal = NewValueStruct(C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(uint32(v))), iso)
+		case uint32:
+			rtnVal = NewValueStruct(C.NewValueIntegerFromUnsigned(iso.ptr, C.uint(v)), iso)
+		case int:
+			rtnVal = NewValueStruct(C.NewValueBigInt(iso.ptr, C.int64_t(int64(v))), iso)
+		case uint:
+			rtnVal = NewValueStruct(C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(uint64(v))), iso)
+		case int64:
+			rtnVal = NewValueStruct(C.NewValueBigInt(iso.ptr, C.int64_t(v)), iso)
+		case uint64:
+			rtnVal = NewValueStruct(C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(v)), iso)
+		case bool:
+			var b int
+			if v {
+				b = 1
+			}
+			rtnVal = NewValueStruct(C.NewValueBoolean(iso.ptr, C.int(b)), iso)
+		case float32:
+			rtnVal = NewValueStruct(C.NewValueNumber(iso.ptr, C.double(float64(v))), iso)
+		case float64:
+			rtnVal = NewValueStruct(C.NewValueNumber(iso.ptr, C.double(v)), iso)
+		case *big.Int:
+			if v.IsInt64() {
+				rtnVal = NewValueStruct(C.NewValueBigInt(iso.ptr, C.int64_t(v.Int64())), iso)
+				break
+			}
 
-		words := make([]C.uint64_t, count, count)
-		for idx, word := range bits {
-			words[idx] = C.uint64_t(word)
-		}
+			if v.IsUint64() {
+				rtnVal = NewValueStruct(C.NewValueBigIntFromUnsigned(iso.ptr, C.uint64_t(v.Uint64())), iso)
+				break
+			}
 
-		rtn := C.NewValueBigIntFromWords(iso.ptr, C.int(sign), C.int(count), &words[0])
-		return valueResult(iso, rtn)
-	default:
-		return nil, fmt.Errorf("v8go: unsupported value type `%T`", v)
+			var sign, count int
+			if v.Sign() == -1 {
+				sign = 1
+			}
+			bits := v.Bits()
+			count = len(bits)
+
+			words := make([]C.uint64_t, count, count)
+			for idx, word := range bits {
+				words[idx] = C.uint64_t(word)
+			}
+
+			rtn := C.NewValueBigIntFromWords(iso.ptr, C.int(sign), C.int(count), &words[0])
+			return valueResult(iso, rtn)
+		default:
+			return nil, fmt.Errorf("v8go: unsupported value type `%T`", v)
+		}
 	}
 
 	return rtnVal, nil

@@ -231,6 +231,8 @@ extern V8GO_EXPORT ValuePtr NewValueNull(IsolatePtr iso_ptr);
 
 extern V8GO_EXPORT ValuePtr NewValueUndefined(IsolatePtr iso_ptr);
 
+extern V8GO_EXPORT ValuePtr NewValueArray(IsolatePtr iso,ValuePtr elements[], int32_t size);
+
 extern V8GO_EXPORT ValuePtr NewValueInteger(IsolatePtr iso_ptr, int32_t v);
 
 extern V8GO_EXPORT ValuePtr NewValueIntegerFromUnsigned(IsolatePtr iso_ptr, uint32_t v);
