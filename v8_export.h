@@ -448,6 +448,8 @@ typedef int *RawIntPtr;
 
 extern V8GO_EXPORT RawInspectorClientPtr NewInspectorClient(ContextPtr ctx, int32_t port);
 
+extern V8GO_EXPORT void InspectorClose(RawInspectorClientPtr ptr);
+
 extern V8GO_EXPORT bool InspectorTick(RawInspectorClientPtr ptr);
 
 extern V8GO_EXPORT bool InspectorAlive(RawInspectorClientPtr ptr);

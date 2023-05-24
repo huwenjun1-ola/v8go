@@ -7,15 +7,16 @@ import (
 )
 
 type TsEnv struct {
-	Iso           *v8go.Isolate
-	Ctx           *v8go.Context
-	TsModuleDir   string
-	packageConfig *PackageConfig
-	globalClass   *v8go.ObjectTemplate
-	emptyClass    *v8go.ObjectTemplate
-	PreLoadFiles  []string
-	Trace         bool
-	LogFunc       func(a ...interface{})
+	Iso             *v8go.Isolate
+	Ctx             *v8go.Context
+	TsModuleDir     string
+	packageConfig   *PackageConfig
+	globalClass     *v8go.ObjectTemplate
+	emptyClass      *v8go.ObjectTemplate
+	PreLoadFiles    []string
+	Trace           bool
+	LogFunc         func(a ...interface{})
+	inspectorServer *v8go.InspectorServer
 }
 
 func NewTsEnv(tsModuleDir string) *TsEnv {
@@ -39,11 +40,11 @@ func (t *TsEnv) Init(waitDebugger bool, debugEnable bool, debugPort uint32) erro
 	t.emptyClass = v8go.NewObjectTemplate(t.Iso)
 	t.Ctx = v8go.NewContextWithOptions(t.Iso, t.globalClass)
 	if debugEnable {
-		ins := v8go.NewInspectorServer(t.Iso, t.Ctx, debugPort)
+		t.inspectorServer = v8go.NewInspectorServer(t.Iso, t.Ctx, debugPort)
 		if waitDebugger {
-			ins.WaitDebugger()
+			t.inspectorServer.WaitDebugger()
 		}
-		go ins.Run()
+		go t.inspectorServer.Run()
 	}
 	//初始化为node
 	err := t.Ctx.Global().Set("global", t.Ctx.Global())
@@ -128,6 +129,9 @@ func (t *TsEnv) CreateEmptyObject() (*v8go.Object, error) {
 }
 
 func (t *TsEnv) Destroy() {
+	if t.inspectorServer != nil {
+		t.inspectorServer.Destroy()
+	}
 	t.Ctx.Close()
 	t.Iso.Dispose()
 }
