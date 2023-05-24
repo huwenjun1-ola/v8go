@@ -117,7 +117,7 @@ func NewValue(iso *Isolate, val interface{}) (rtnVal *Value, e error) {
 			arrPtr = &valuePointers[0]
 		}
 
-		rtnVal = NewValueStruct(C.NewValueArray(iso.ptr, arrPtr, C.uint32_t(uint32(iLen))), iso)
+		rtnVal = NewValueStruct(C.NewValueArray(iso.ptr, arrPtr, C.int32_t(int32(iLen))), iso)
 	} else {
 
 		switch v := val.(type) {
